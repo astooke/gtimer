@@ -16,18 +16,19 @@ __all__ = ['open_next_timer', 'close_last_timer', 'wrap', 'rename_root_timer']
 #
 
 
-def open_next_timer(name, rgstr_stamps=list()):
+def open_next_timer(name, rgstr_stamps=list(), save_itrs=True):
     name = str(name)
     rgstr_stamps = sanitize_rgstr_stamps(rgstr_stamps)
+    save_itrs = bool(save_itrs)
     if name in g.tf.children_awaiting:
         # Previous dump exists.
         # (e.g. multiple calls of same wrapped function between stamps)
         dump = g.tf.children_awaiting[name]
-        g.create_next_timer(name, rgstr_stamps)
+        g.create_next_timer(name, rgstr_stamps, save_itrs)
         g.tf.dump = dump
     else:
-        # No previous, write directly to awaiting child in parent times.
-        g.create_next_timer(name, rgstr_stamps, parent=g.rf)
+        # No previous, write times directly to awaiting child in parent times.
+        g.create_next_timer(name, rgstr_stamps, save_itrs, parent=g.rf)
         new_times = g.rf
         g.focus_backward_timer()
         g.tf.children_awaiting[name] = new_times
@@ -65,17 +66,18 @@ def rename_root_timer(name):
 # Hide from user but expose elswhere in package.
 #
 
-def open_named_loop_timer(name, rgstr_stamps):
+def open_named_loop_timer(name, rgstr_stamps, save_itrs):
     name = str(name)
     rgstr_stamps = sanitize_rgstr_stamps(rgstr_stamps)
+    save_itrs = bool(save_itrs)
     if name in g.rf.children:
         assert len(g.rf.children[name]) == 1  # There should only be one child.
         dump = g.rf.children[name][0]
-        g.create_next_timer(name, rgstr_stamps, loop_depth=1)
+        g.create_next_timer(name, rgstr_stamps, save_itrs, in_loop=True)
         g.tf.dump = dump
     else:
         # No previous, write directly to assigned child in parent times.
-        g.create_next_timer(name, rgstr_stamps, loop_depth=1, parent=g.rf, pos_in_parent=name)
+        g.create_next_timer(name, rgstr_stamps, save_itrs, in_loop=True, parent=g.rf, pos_in_parent=name)
         new_times = g.rf
         g.focus_backward_timer()
         g.rf.children[name] = [new_times]
@@ -84,7 +86,7 @@ def open_named_loop_timer(name, rgstr_stamps):
 
 def sanitize_rgstr_stamps(rgstr_stamps):
     if not isinstance(rgstr_stamps, (list, tuple)):
-        raise TypeError("Expected list or tuple for rgstr_stamps (entries converted with str()).")
+        raise TypeError("Expected list or tuple for rgstr_stamps (elements passed through str()).")
     rgstr_stamps = list(rgstr_stamps)
     for s in rgstr_stamps:
         s = str(s)

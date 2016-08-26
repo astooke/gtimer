@@ -31,15 +31,13 @@ def stamp(name, unique=True):
     t = timer()
     elapsed = t - g.tf.last_t
     name = str(name)
+    unique = bool(unique)
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped.")
     if g.tf.paused:
         raise RuntimeError("Timer paused.")
-    if g.tf.loop_depth > 0:
-        if unique:
-            _unique_loop_stamp(name, elapsed)
-        else:
-            _nonunique_loop_stamp(name, elapsed)
+    if g.tf.in_loop:
+        _loop_stamp(name, elapsed, unique)
     else:
         if name not in g.sf.cum:
             g.sf.cum[name] = elapsed
@@ -56,32 +54,13 @@ def stamp(name, unique=True):
     return t
 
 
-def l_stamp(name, unique=True):
-    t = timer()
-    elapsed = t - g.tf.last_t
-    name = str(name)
-    if g.tf.stopped:
-        raise RuntimeError("Timer already stopped.")
-    if g.tf.paused:
-        raise RuntimeError("Timer paused.")
-    if unique:
-        if g.tf.loop_depth < 1:
-            raise RuntimeError("Should be in a timed loop to use unique l_stamp.")
-        _unique_loop_stamp(name, elapsed)
-    else:
-        _nonunique_loop_stamp(name, elapsed)
-    if g.tf.children_awaiting:
-        times_glob.l_assign_children(name)
-    g.tf.last_t = t
-    g.rf.self_cut += timer() - t
-    return t
-
-
 def stop(name=None, unique=True):
     t = timer()
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped.")
     if name is not None:
+        if g.tf.paused:
+            raise RuntimeError("Cannot apply stopping stamp to paused timer.")
         stamp(name, unique)
     else:
         if g.tf.children_awaiting:
@@ -92,12 +71,10 @@ def stop(name=None, unique=True):
         if s not in g.sf.cum:
             g.sf.cum[s] = 0.
             g.sf.order.append(s)
-    if not g.tf.paused:
-        final_t = timer()
-        # For now, add this self time here so that it can aggregate up,
-        # even though it's just removed from the final.
-        g.rf.self_cut += final_t - t
-        g.rf.total += final_t - g.tf.start_t - g.rf.self_cut
+    if not g.tf.pause:
+        g.tf.tmp_total += t - g.tf.start_t
+    g.rf.total = g.tf.tmp_total - g.rf.self_cut
+    g.rf.self_cut += timer() - t  # (Add after setting g.rf.total)
     times_glob.dump_times()
     return t
 
@@ -109,7 +86,7 @@ def pause():
     if g.tf.paused:
         raise RuntimeError("Timer already paused.")
     g.tf.paused = True
-    g.rf.total += t - g.tf.start_t
+    g.tf.tmp_total += t - g.tf.start_t
     g.tf.start_t = None
     g.tf.last_t = None
     return t
@@ -140,27 +117,22 @@ def b_stamp(*args, **kwargs):
 #
 
 
-def _unique_loop_stamp(name, elapsed):
-    if name not in g.lf.stamps:
-        if name in g.sf.cum:
-            raise ValueError("Duplicate name: {} (might be anonymous inner loop)".format(name))
+def _loop_stamp(name, elapsed, unique=True):
+    if name not in g.lf.stamps:  # (first time this loop gets this name)
+        if unique and name in g.sf.cum:
+            raise ValueError("Duplicate stamp name (in loop): {}".format(name))
         g.lf.stamps.append(name)
         g.lf.itr_stamp_used[name] = False
         g.sf.cum[name] = 0.
-        g.sf.itrs[name] = []
+        if g.lf.save_itrs:
+            g.sf.itrs[name] = []
         g.sf.order.append(name)
     if g.lf.itr_stamp_used[name]:
-        raise RuntimeError("Loop stamp name twice in one itr: {}".format(name))
-    g.lf.itr_stamp_used[name] = True
-    g.sf.cum[name] += elapsed
-    g.sf.itrs[name].append(elapsed)
-
-
-def _nonunique_loop_stamp(name, elapsed):
-    if name not in g.sf.cum:
-        g.sf.cum[name] = elapsed
-        g.sf.itrs[name] = [elapsed]
-        g.sf.order.append(name)
-    else:
-        g.sf.cum[name] += elapsed
+        if unique:
+            raise ValueError("Loop stamp name twice in one itr: {}".format(name))
+        elif g.lf.save_itrs:
+                g.sf.itrs[name] += elapsed
+    elif g.lf.save_itrs:
         g.sf.itrs[name].append(elapsed)
+    g.sf.cum[name] += elapsed
+    g.lf.itr_stamp_used[name] = True

@@ -32,6 +32,10 @@ else:
 #     different runs of the same program), and makes tables of all
 #     their stamps.  So that each table has TIMER on one axis and
 #     STAMP on the other...yes this is what I'm really after!
+# 19. save_itrs as option
+# 20. stamp behavior in loop...if allowed duplicate, act like disjoint
+#     stamp within loop, but still use loop mehanism to assign to same
+#     iteration the following times a stamp is encountered.
 # .
 # .
 # N+1. Automate the shortcut building.
@@ -39,7 +43,7 @@ else:
 #
 #               ... LOW PRIORITY...
 # 8. How to handle multiple separate heap (contexts)? Is this even useful?
-# 14. NO_CHECK mode. (well let's see what the self times are)
+# 14. NO_CHECK mode? 
 # 10. stamp itr statistics (running avg, running stdev?)
 #
 #

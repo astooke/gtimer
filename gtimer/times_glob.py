@@ -44,4 +44,4 @@ def l_assign_children(position):
 
 def dump_times():
     if g.tf.dump is not None:
-        times_loc.merge_times(g.tf.dump, g.rf)
+        times_loc.merge_times(g.tf.dump, g.rf, stamps_as_itr=g.tf.save_itrs)

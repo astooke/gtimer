@@ -9,7 +9,20 @@ import times_glob
 import timer_mgmt
 
 
-__all__ = ['timed_for', 'timed_loop']
+__all__ = ['timed_loop', 'timed_for']
+
+
+#
+# Expose to user.
+#
+
+
+def timed_loop(name=None, rgstr_stmps=list()):
+    return TimedLoop(name, rgstr_stmps)
+
+
+def timed_for(iterable, name=None, rgstr_stmps=list()):
+    return TimedFor(iterable, name, rgstr_stmps)
 
 
 #
@@ -20,21 +33,23 @@ __all__ = ['timed_for', 'timed_loop']
 class Loop(object):
     """Hold info for name checking and assigning."""
 
-    def __init__(self, name=None, rgstr_stamps=list()):
+    def __init__(self, name=None, rgstr_stamps=list(), save_itrs=True):
         self.name = None if name is None else str(name)
         self.stamps = list()
         self.rgstr_stamps = rgstr_stamps
         self.itr_stamp_used = dict()
         for s in rgstr_stamps:
             self.itr_stamp_used[s] = False
+        self.save_itrs = save_itrs
 
 
 class TimedLoopBase(object):
     """Base class, not to be used."""
 
-    def __init__(self, name=None, rgstr_stamps=list()):
-        self._name = name
+    def __init__(self, name=None, rgstr_stamps=list(), save_itrs=True):
+        self._name = str(name)
         self._rgstr_stamps = timer_mgmt.sanitize_rgstr_stamps(rgstr_stamps)
+        self._save_itrs = bool(save_itrs)
         self._started = False
         self._exited = False
 
@@ -54,22 +69,17 @@ class TimedLoopBase(object):
         self.__exit__()
 
 
-#
-# Exposed to user.
-#
+class TimedLoop(TimedLoopBase):
 
-
-class timed_loop(TimedLoopBase):
-
-    def __init__(self, name=None, rgstr_stamps=list()):
+    def __init__(self, name=None, rgstr_stamps=list(), save_itrs=True):
         self._first = True
-        super(timed_loop, self).__init__(name, rgstr_stamps)
+        super(TimedLoop, self).__init__(name, rgstr_stamps, save_itrs)
 
     def next(self):
         if self._exited:
             raise RuntimeError("Loop already exited (make a new loop).")
         if self._first:
-            enter_loop(self._name, self._rgstr_stamps)
+            enter_loop(self._name, self._rgstr_stamps, self._save_itrs)
             self._first = False
             self._started = True
         else:
@@ -77,14 +87,14 @@ class timed_loop(TimedLoopBase):
         loop_start()
 
 
-class timed_for(TimedLoopBase):
+class TimedFor(TimedLoopBase):
 
-    def __init__(self, iterable, name=None, rgstr_stamps=list()):
+    def __init__(self, iterable, name=None, rgstr_stamps=list(), save_itrs=True):
         self._iterable = iterable
-        super(timed_for, self).__init__(name, rgstr_stamps)
+        super(TimedFor, self).__init__(name, rgstr_stamps, save_itrs)
 
     def __iter__(self):
-        enter_loop(self._name, self._rgstr_stamps)
+        enter_loop(self._name, self._rgstr_stamps, self._save_itrs)
         for i in self._iterable:
             loop_start()
             self._started = True
@@ -97,12 +107,7 @@ class timed_for(TimedLoopBase):
         self._exited = True
 
 
-#
-# Hidden from user.
-#
-
-
-def enter_loop(name=None, rgstr_stamps=list()):
+def enter_loop(name=None, rgstr_stamps=list(), save_itrs=True):
     t = timer()
     g.tf.last_t = t
     if g.tf.stopped:
@@ -111,7 +116,11 @@ def enter_loop(name=None, rgstr_stamps=list()):
         raise RuntimeError("Timer paused.")
     if g.tf.children_awaiting:
         times_glob.l_assign_children(g.UNASGN)
-    if name is not None:  # Entering a named loop.
+    if name is None:  # Entering anonynous loop.
+        if g.tf.in_loop:
+            raise RuntimeError("Entering anonymous inner timed loop (not supported).")
+        g.tf._in_loop = True
+    else:  # Entering a named loop.
         if g.tf.loop_depth < 1 or name not in g.lf.stamps:
             if name in g.sf.cum:
                 raise ValueError("Duplicate name given to loop: {}".format(name))
@@ -123,9 +132,7 @@ def enter_loop(name=None, rgstr_stamps=list()):
         t = timer()
         g.rf.self_cut += t - g.tf.last_t
         timer_mgmt.open_named_loop_timer(name, rgstr_stamps)  # (should be OK empty list for rgstr_stamps)
-    else:  # Entering an anonymous loop.
-        g.tf.loop_depth += 1
-    g.create_next_loop(name, rgstr_stamps)
+    g.create_next_loop(name, rgstr_stamps, save_itrs)
     g.rf.self_cut += timer() - t
 
 
@@ -150,9 +157,11 @@ def loop_end():
             if s not in g.lf.stamps:
                 g.lf.stamps.append(s)
                 g.sf.cum[s] = 0.
-                g.sf.itrs[s] = []
+                if g.lf.save_itrs:
+                    g.sf.itrs[s] = []
                 g.sf.order.append(s)
-            g.sf.itrs.append(0.)
+            if g.lf.save_itrs:
+                g.sf.itrs.append(0.)
     if g.tf.children_awaiting:
         times_glob.l_assign_children(g.UNASGN)
     if g.lf.name is not None:
@@ -160,7 +169,8 @@ def loop_end():
         g.focus_backward_timer()
         elapsed = t - g.tf.last_t
         g.sf.cum[g.lf.name] += elapsed
-        g.sf.itrs[g.lf.name].append(elapsed)
+        if g.lf.save_itrs:  # do NOT focus_backward_loop()
+            g.sf.itrs[g.lf.name].append(elapsed)
         g.tf.last_t = t
         g.focus_forward_timer()
     g.rf.self_cut += timer() - t
