@@ -4,6 +4,7 @@ Timer data and state containers (hidden from user).
 """
 
 from timeit import default_timer as timer
+import copy
 
 
 class Timer(object):
@@ -11,19 +12,31 @@ class Timer(object):
     (Disappears or irrelevant after timing is complete.)
     """
 
-    def __init__(self, name, rgstr_stamps=list(), save_itrs=True, in_loop=False, **kwargs):
+    def __init__(self,
+                 name,
+                 rgstr_stamps=list(),
+                 save_itrs=True,
+                 dump=None,
+                 in_loop=False,
+                 **kwargs):
         self.name = str(name)
-        self.times = Times(name, **kwargs)
+        self.rgstr_stamps = rgstr_stamps
         self.save_itrs = bool(save_itrs)
+        self.dump = dump  # refers to a Times instance
         self.in_loop = bool(in_loop)
+        self.times = None
+        self.reset()
+        self.times = Times(name, **kwargs)
+
+    def reset(self):
         self.stopped = False
         self.paused = False
-        self.tmp_total = 0.  # only to help with pausing.
-        self.children_awaiting = dict()  # key: name of Timer, value: Times instance
-        self.dump = None  # refers to a Times instance
-        self.rgstr_stamps = rgstr_stamps
+        self.tmp_total = 0.
+        self.children_awaiting = dict()
         self.start_t = timer()
         self.last_t = self.start_t
+        if self.times is not None:
+            self.times.reset()
 
 
 class Times(object):
@@ -33,13 +46,27 @@ class Times(object):
 
     def __init__(self, name, parent=None, pos_in_parent=None):
         self.name = str(name)
-        self.stamps = Stamps()
-        self.total = 0.  # Only populated once timer is stopped.
-        self.self_cut = 0.  # Self time from this timer.
-        self.self_agg = 0.  # Self time including all children.
         self.parent = parent  # refer to another Times instance.
         self.pos_in_parent = pos_in_parent  # refers to a stamp name.
-        self.children = dict()  # key: stamp, value: list of Times instances.
+        self.reset()
+
+    def __deepcopy__(self, memo):
+        new = type(self)()
+        new.__dict__.update(self.__dict__)
+        new.stamps = copy.deepcopy(self.stamps, memo)
+        new.children = copy.deepcopy(self.children, memo)
+        # Avoid deepcopy of parent, and update attribute.
+        for _, child_list in new.children:
+            for child in child_list:
+                child.parent = self
+        return new
+
+    def reset(self):
+        self.stamps = Stamps()
+        self.total = 0.
+        self.self_cut = 0.
+        self.self_agg = 0.
+        self.children = dict()
 
 
 class Stamps(object):

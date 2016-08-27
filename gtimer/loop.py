@@ -6,8 +6,8 @@ Almost everything to do with loops (some visible to from user).
 from timeit import default_timer as timer
 import data_glob as g
 import times_glob
-import timer_mgmt
-
+import mgmt_priv
+import mgmt_pub
 
 __all__ = ['timed_loop', 'timed_for']
 
@@ -17,12 +17,12 @@ __all__ = ['timed_loop', 'timed_for']
 #
 
 
-def timed_loop(name=None, rgstr_stmps=list()):
-    return TimedLoop(name, rgstr_stmps)
+def timed_loop(name=None, rgstr_stmps=list(), save_itrs=True):
+    return TimedLoop(name, rgstr_stmps, save_itrs)
 
 
-def timed_for(iterable, name=None, rgstr_stmps=list()):
-    return TimedFor(iterable, name, rgstr_stmps)
+def timed_for(iterable, name=None, rgstr_stmps=list(), save_itrs=True):
+    return TimedFor(iterable, name, rgstr_stmps, save_itrs)
 
 
 #
@@ -48,7 +48,7 @@ class TimedLoopBase(object):
 
     def __init__(self, name=None, rgstr_stamps=list(), save_itrs=True):
         self._name = str(name)
-        self._rgstr_stamps = timer_mgmt.sanitize_rgstr_stamps(rgstr_stamps)
+        self._rgstr_stamps = mgmt_priv.sanitize_rgstr_stamps(rgstr_stamps)
         self._save_itrs = bool(save_itrs)
         self._started = False
         self._exited = False
@@ -115,23 +115,23 @@ def enter_loop(name=None, rgstr_stamps=list(), save_itrs=True):
     if g.tf.paused:
         raise RuntimeError("Timer paused.")
     if g.tf.children_awaiting:
-        times_glob.l_assign_children(g.UNASGN)
+        times_glob.assign_children(g.UNASGN)
     if name is None:  # Entering anonynous loop.
         if g.tf.in_loop:
             raise RuntimeError("Entering anonymous inner timed loop (not supported).")
         g.tf._in_loop = True
     else:  # Entering a named loop.
-        if g.tf.loop_depth < 1 or name not in g.lf.stamps:
+        if not g.tf.in_loop or name not in g.lf.stamps:
             if name in g.sf.cum:
                 raise ValueError("Duplicate name given to loop: {}".format(name))
             g.sf.cum[name] = 0.
             g.sf.itrs[name] = []
             g.sf.order.append(name)
-        if g.tf.loop_depth > 0 and name not in g.lf.stamps:
+        if g.tf.in_loop and name not in g.lf.stamps:
             g.lf.stamps.append(name)
         t = timer()
         g.rf.self_cut += t - g.tf.last_t
-        timer_mgmt.open_named_loop_timer(name, rgstr_stamps)  # (should be OK empty list for rgstr_stamps)
+        mgmt_priv.open_named_loop_timer(name, rgstr_stamps, save_itrs)
     g.create_next_loop(name, rgstr_stamps, save_itrs)
     g.rf.self_cut += timer() - t
 
@@ -139,8 +139,6 @@ def enter_loop(name=None, rgstr_stamps=list(), save_itrs=True):
 def loop_start():
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped.")
-    if g.tf.paused:
-        raise RuntimeError("Timer cannot be paused when entering next loop iteration.")
     for k in g.lf.itr_stamp_used:
         g.lf.itr_stamp_used[k] = False
 
@@ -149,8 +147,6 @@ def loop_end():
     t = timer()
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped.")
-    if g.tf.paused:
-        raise RuntimeError("Timer paused.")
     g.tf.last_t = t
     for s in g.lf.rgstr_stamps:
         if not g.lf.itr_stamp_used[s]:
@@ -163,7 +159,7 @@ def loop_end():
             if g.lf.save_itrs:
                 g.sf.itrs.append(0.)
     if g.tf.children_awaiting:
-        times_glob.l_assign_children(g.UNASGN)
+        times_glob.assign_children(g.UNASGN)
     if g.lf.name is not None:
         # Reach back and stamp in the parent timer.
         g.focus_backward_timer()
@@ -183,12 +179,13 @@ def exit_loop():
     if g.tf.paused:
         raise RuntimeError("Timer paused.")
     if g.lf.name is not None:
-        timer_mgmt.close_last_timer()
+        g.tf.in_loop = False
+        mgmt_pub.close_last_timer()
         if g.tf.children_awaiting:
-            times_glob.l_assign_children(g.lf.name)
+            times_glob.assign_children(g.lf.name)
     else:
         g.tf.loop_depth -= 1
         if g.tf.children_awaiting:
-            times_glob.l_assign_children(g.UNASGN)
+            times_glob.assign_children(g.UNASGN)
     g.remove_last_loop()
     g.rf.self_cut += timer() - t

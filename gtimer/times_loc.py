@@ -1,6 +1,9 @@
 
 """
-Times() functions acting on locally provided variables (hidden from user).
+Times() functions acting on locally provided variables.
+(So far, hidden from user)...might expose some
+to support multiprocessing, if user has to manipulate
+saved Times objects.
 """
 
 #
@@ -50,7 +53,6 @@ def _merge_children(rcvr, new):
                 for rcvr_child in rcvr.children[child_pos]:
                     if rcvr_child.name == new_child.name:
                         merge_times(rcvr_child, new_child, agg_up=False)
-                        # merge_children(rcvr_child, new_child)
                         break
                 else:
                     new_child.parent = rcvr

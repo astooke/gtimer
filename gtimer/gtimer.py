@@ -15,9 +15,8 @@ if DISABLED:
 else:
     from timer_glob import *
     from loop import *
-    from timer_mgmt import *
+    from mgmt_pub import *
     from report_glob import *
-
 
 
 
@@ -32,10 +31,8 @@ else:
 #     different runs of the same program), and makes tables of all
 #     their stamps.  So that each table has TIMER on one axis and
 #     STAMP on the other...yes this is what I'm really after!
-# 19. save_itrs as option
-# 20. stamp behavior in loop...if allowed duplicate, act like disjoint
-#     stamp within loop, but still use loop mehanism to assign to same
-#     iteration the following times a stamp is encountered.
+# 10. stamp itr statistics (running avg, running stdev?)
+
 # .
 # .
 # N+1. Automate the shortcut building.
@@ -44,10 +41,18 @@ else:
 #               ... LOW PRIORITY...
 # 8. How to handle multiple separate heap (contexts)? Is this even useful?
 # 14. NO_CHECK mode? 
-# 10. stamp itr statistics (running avg, running stdev?)
 #
 #
 #               .. to DONE...
+# 19. Need to write a getter for the times then. A: used the old deep
+#     copy had written previously.
+# 22. provide function to hard reset current timer. >> could go wrong
+#     if done inside a loop? A: yup, disallowed that.
+# 20. stamp behavior in loop...if allowed duplicate, act like disjoint
+#     stamp within loop, but still use loop mehanism to assign to same
+#     iteration the following times a stamp is encountered. A: Yup this
+#     is much better, and gets rid of l_stamp!!! finally!!
+# 19. save_itrs as option
 # 7. Once the Times class is stabilized, all the reporting
 #     stuff that I wanted to do before.
 # 13. DISABLE mode.
