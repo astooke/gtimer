@@ -116,6 +116,8 @@ def enter_loop(name=None, rgstr_stamps=list(), save_itrs=True):
         raise RuntimeError("Timer paused.")
     if g.tf.children_awaiting:
         times_glob.assign_children(g.UNASGN)
+    if g.tf.par_children_awaiting:
+        times_glob.par_assign_children(g.UNASGN)
     if name is None:  # Entering anonynous loop.
         if g.tf.in_loop:
             raise RuntimeError("Entering anonymous inner timed loop (not supported).")
@@ -160,6 +162,8 @@ def loop_end():
                 g.sf.itrs.append(0.)
     if g.tf.children_awaiting:
         times_glob.assign_children(g.UNASGN)
+    if g.tf.par_children_awaiting:
+        times_glob.par_assign_children(g.UNASGN)
     if g.lf.name is not None:
         # Reach back and stamp in the parent timer.
         g.focus_backward_timer()
@@ -177,15 +181,10 @@ def exit_loop():
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped.")
     if g.tf.paused:
-        raise RuntimeError("Timer paused.")
+        raise RuntimeError("Timer paused at loop exit (uncertain behavior--not allowed).")
     if g.lf.name is not None:
-        g.tf.in_loop = False
         mgmt_pub.close_last_timer()
-        if g.tf.children_awaiting:
-            times_glob.assign_children(g.lf.name)
     else:
-        g.tf.loop_depth -= 1
-        if g.tf.children_awaiting:
-            times_glob.assign_children(g.UNASGN)
+        g.tf.in_loop = False
     g.remove_last_loop()
     g.rf.self_cut += timer() - t

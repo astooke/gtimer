@@ -56,7 +56,7 @@ create_next_timer = t_shortcut(timer_stack.create_next)
 remove_last_timer = t_shortcut(timer_stack.remove_last)
 focus_backward_timer = t_shortcut(timer_stack.focus_backward)
 focus_forward_timer = t_shortcut(timer_stack.focus_forward)
-focus_root_timer = t_shortcut(timer_stack.focus_root)
+# focus_root_timer = t_shortcut(timer_stack.focus_root)
 focus_last_timer = t_shortcut(timer_stack.focus_last)
 
 

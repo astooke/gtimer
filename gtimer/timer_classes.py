@@ -33,6 +33,7 @@ class Timer(object):
         self.paused = False
         self.tmp_total = 0.
         self.children_awaiting = dict()
+        self.par_children_awaiting = dict()
         self.start_t = timer()
         self.last_t = self.start_t
         if self.times is not None:
@@ -55,10 +56,15 @@ class Times(object):
         new.__dict__.update(self.__dict__)
         new.stamps = copy.deepcopy(self.stamps, memo)
         new.children = copy.deepcopy(self.children, memo)
+        new.par_children = copy.deepcopy(self.par_children, memo)
         # Avoid deepcopy of parent, and update attribute.
         for _, child_list in new.children:
             for child in child_list:
                 child.parent = self
+        for _, list_of_child_lists in new.par_children:
+            for child_list in list_of_child_lists:
+                for child in child_list:
+                    child.parent = self
         return new
 
     def reset(self):
@@ -67,6 +73,8 @@ class Times(object):
         self.self_cut = 0.
         self.self_agg = 0.
         self.children = dict()
+        self.par_children = dict()
+        self.par_in_parent = False
 
 
 class Stamps(object):
@@ -76,38 +84,3 @@ class Stamps(object):
         self.itrs = dict()
         self.order = list()
         self.sum_t = 0.
-
-
-# class Loop(object):
-
-#     def __init__(self, save_itrs=True):
-#         self.name = None
-#         self.save_itrs = save_itrs
-#         self.reg_stamps = list()
-#         self.stamp_used = dict()
-#         self.start_t = timer()
-#         self.while_condition = True
-
-
-# class TmpData(object):
-
-#     def __init__(self):
-#         self.self_t = 0.
-#         self.calls = 0.
-#         self.times = timesclass.Times()
-
-
-# class Timer(object):
-
-#     def __init__(self, name, save_self_itrs=True, save_loop_itrs=True):
-#         self.name = name
-#         self.save_itrs = save_self_itrs
-#         self.save_loop_itrs = save_loop_itrs
-#         self.reg_stamps = list()
-#         self.in_loop = False
-#         self.active = True
-#         self.paused = False
-#         self.start_t = timer()
-#         self.last_t = self.start_t
-#         self.tmp = TmpData()
-#         self.loop = None

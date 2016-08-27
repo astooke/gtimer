@@ -8,6 +8,7 @@ if 'GTIMER_DISABLE' in os.environ:
         DISABLED = True
 
 if DISABLED:
+    # Contents of these might be out of date.
     from disabled.timer_glob_d import *
     from disabled.loop_d import *
     from disabled.timer_mgmt_d import *
@@ -32,18 +33,25 @@ else:
 #     their stamps.  So that each table has TIMER on one axis and
 #     STAMP on the other...yes this is what I'm really after!
 # 10. stamp itr statistics (running avg, running stdev?)
+# 23. re-think where we hold save_itrs just for its interaction with 
+#     stamps_as_itrs
+# 24. Fix tree traversal code to cope with parallel children.
+# 25. Possible redundant aggregate_up_self in assign children, because
+#     I do them all at the beginning there, but also in the first call
+#     to merge_times.  Probably better to remove from merge_times and just
+#     execute as a separate call.
 
-# .
-# .
-# N+1. Automate the shortcut building.
+
 #
 #
 #               ... LOW PRIORITY...
 # 8. How to handle multiple separate heap (contexts)? Is this even useful?
-# 14. NO_CHECK mode? 
+# 14. NO_CHECK mode? X I don't think it's necessary.
 #
+
 #
 #               .. to DONE...
+# N+1. Automate the shortcut building.
 # 19. Need to write a getter for the times then. A: used the old deep
 #     copy had written previously.
 # 22. provide function to hard reset current timer. >> could go wrong

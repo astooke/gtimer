@@ -38,7 +38,6 @@ def stamp(name, unique=True):
         raise RuntimeError("Timer paused.")
     if g.tf.in_loop:
         _loop_stamp(name, elapsed, unique)
-        simple_assign = False
     else:
         if name not in g.sf.cum:
             g.sf.cum[name] = elapsed
@@ -47,9 +46,10 @@ def stamp(name, unique=True):
             raise ValueError("Duplicate stamp name: {}".format(name))
         else:
             g.sf.cum[name] += elapsed
-        simple_assign = unique
     if g.tf.children_awaiting:
-        times_glob.assign_children(name, simple_assign)
+        times_glob.assign_children(name)
+    if g.tf.par_children_awaiting:
+        times_glob.par_assign_children(name)
     g.tf.last_t = t
     g.rf.self_cut += timer() - t
     g.rf.self_agg += g.rf.self_cut
@@ -67,6 +67,8 @@ def stop(name=None, unique=True):
     else:
         if g.tf.children_awaiting:
             times_glob.assign_children(g.UNASGN)
+        if g.tf.par_children_awaiting:
+            times_glob.par_assign_children(g.UNASGN)
     for _, v in g.sf.cum.iteritems():
         g.sf.sum_t += v
     for s in g.tf.rgstr_stamps:
