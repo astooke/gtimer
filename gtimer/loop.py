@@ -194,11 +194,11 @@ def enter_loop(name=None,
             g.sf.order.append(name)
         if g.tf.in_loop and name not in g.lf.stamps:
             g.lf.stamps.append(name)
-        t = timer()
-        g.rf.self_cut += t - g.tf.last_t
+        g.tf.self_cut += timer() - t
         mgmt_priv.subdivide_named_loop(name, rgstr_stamps, save_itrs)
     g.create_next_loop(name, rgstr_stamps, save_itrs)
-    g.rf.self_cut += timer() - t
+    if name is None:
+        g.tf.self_cut += timer() - t
 
 
 def loop_start():
@@ -216,9 +216,10 @@ def loop_end(loop_end_stamp=None,
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped.")
     if loop_end_stamp is not None:
-        t = timer_glob.stamp(loop_end_stamp,
-                             end_stamp_unique,
-                             keep_subdivisions)
+        timer_glob.stamp(loop_end_stamp,
+                         end_stamp_unique,
+                         keep_subdivisions)
+        t = timer()
     else:
         t = timer()
         g.tf.last_t = t
@@ -246,12 +247,11 @@ def loop_end(loop_end_stamp=None,
             g.sf.itrs[g.lf.name].append(elapsed)
         g.tf.last_t = t
         g.focus_forward_timer()
-    g.rf.self_cut += timer() - t
+    g.tf.self_cut += timer() - t
 
 
 def exit_loop():
     print "exit_loop"
-    t = timer()
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped.")
     if g.tf.paused:
@@ -260,4 +260,3 @@ def exit_loop():
     if g.lf.name is not None:
         mgmt_priv.end_subdivision()
     g.remove_last_loop()
-    g.rf.self_cut += timer() - t

@@ -27,7 +27,6 @@ else:
 # 11. make my own error classes?
 # 15. DUH: MULTIPROCESSING!!!
 # 16. Reporting in the middle of timing...?
-# 17. Test behavior in un-timed loop inside of timed loop
 # 18. Make a reporting function that takes many timers (i.e. many
 #     different runs of the same program), and makes tables of all
 #     their stamps.  So that each table has TIMER on one axis and
@@ -53,6 +52,7 @@ else:
 #
 #               .. to DONE...
 
+# 17. Test behavior in un-timed loop inside of timed loop
 # 27. Protect against user closing a timer...should also protect against
 #     automated closing of user timer!
 # 25. Possible redundant aggregate_up_self in assign children, because

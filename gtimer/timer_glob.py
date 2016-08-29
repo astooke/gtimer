@@ -142,7 +142,7 @@ def _loop_stamp(name, elapsed, unique=True):
         if unique:
             raise ValueError("Loop stamp name twice in one itr: {}".format(name))
         elif g.lf.save_itrs:
-                g.sf.itrs[name] += elapsed
+                g.sf.itrs[name][-1] += elapsed
     elif g.lf.save_itrs:
         g.sf.itrs[name].append(elapsed)
     g.sf.cum[name] += elapsed

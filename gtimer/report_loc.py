@@ -108,8 +108,7 @@ def _define_formats(delim_mode, fmt_opts):
 def _header(times, FMTS):
     rep = FMTS['HDR_STR'].format('Timer Name' + FMTS['APND'], times.name)
     rep += FMTS['HDR_FLT'].format('Total Time (s)' + FMTS['APND'], times.total)
-    rep += FMTS['HDR_FLT'].format('Self Time Agg' + FMTS['APND'], times.self_agg)
-    rep += FMTS['HDR_FLT'].format('Self Time Cut' + FMTS['APND'], times.self_cut)
+    rep += FMTS['HDR_FLT'].format('Self Time (Agg.)' + FMTS['APND'], times.self_agg)
     return rep
 
 

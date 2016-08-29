@@ -39,12 +39,10 @@ for i in loop:
     print i
     time.sleep(0.1)
     gt.stamp('loop1')
-    if i == 2:
-        gt.subdivide('perwhoops')
+    for j in [4, 5, 6]:
+        print j
         time.sleep(0.1)
-        gt.stamp('yeah')
-        gt.end_subdivision()
-        gt.stamp('that one time')
+        gt.stamp('loop2', unique=False)
 
 
 
