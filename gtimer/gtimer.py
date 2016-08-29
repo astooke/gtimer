@@ -35,11 +35,12 @@ else:
 # 10. stamp itr statistics (running avg, running stdev?)
 # 23. re-think where we hold save_itrs just for its interaction with 
 #     stamps_as_itrs
-# 24. Fix tree traversal code to cope with parallel children.
-# 25. Possible redundant aggregate_up_self in assign children, because
-#     I do them all at the beginning there, but also in the first call
-#     to merge_times.  Probably better to remove from merge_times and just
-#     execute as a separate call.
+# 24. Fix tree traversal code to cope with parallel children?
+# 25. print stamps from parallel like this: take the stamps from the one
+#     that took the longest time.
+# 26. print a parallel section like this: make the full tree of all the
+#     stamps from all the parallel children, then leave a blank or a '--'
+#     for the children who don't have that stamp.
 
 
 #
@@ -51,6 +52,13 @@ else:
 
 #
 #               .. to DONE...
+
+# 27. Protect against user closing a timer...should also protect against
+#     automated closing of user timer!
+# 25. Possible redundant aggregate_up_self in assign children, because
+#     I do them all at the beginning there, but also in the first call
+#     to merge_times.  Probably better to remove from merge_times and just
+#     execute as a separate call. A: Yup fixed this (quite different now)!
 # N+1. Automate the shortcut building.
 # 19. Need to write a getter for the times then. A: used the old deep
 #     copy had written previously.

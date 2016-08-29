@@ -11,23 +11,14 @@ saved Times objects.
 #
 
 
-def merge_times(rcvr, new, stamps_as_itr=True, agg_up=True):
+def merge_times(rcvr, new, stamps_as_itr=True):
     rcvr.total += new.total
     rcvr.self_cut += new.self_cut
-    if agg_up:
-        aggregate_up_self(rcvr, new.self_agg)
-    else:
-        rcvr.self_agg += new.self_agg
+    rcvr.self_agg += new.self_agg
     if stamps_as_itr:
         _merge_stamps_as_itr(rcvr, new)
     _merge_stamps(rcvr, new)
-    _merge_children(rcvr, new)
-
-
-def aggregate_up_self(times, val):
-    times.self_agg += val
-    if times.parent is not None:
-        aggregate_up_self(times.parent, val)
+    _merge_subdivisions(rcvr, new)
 
 
 #
@@ -46,23 +37,23 @@ def _merge_stamps(rcvr, new):
     rcvr.sum_t += new.sum_t
 
 
-def _merge_children(rcvr, new):
-    for child_pos, new_children in new.children.iteritems():
-        if child_pos in rcvr.children:
-            for new_child in new_children:
-                for rcvr_child in rcvr.children[child_pos]:
-                    if rcvr_child.name == new_child.name:
-                        merge_times(rcvr_child, new_child, agg_up=False)
+def _merge_subdivisions(rcvr, new):
+    for sub_pos, new_subdivisions in new.subdivisions.iteritems():
+        if sub_pos in rcvr.subdivisions:
+            for new_sub in new_subdivisions:
+                for rcvr_sub in rcvr.subdivisions[sub_pos]:
+                    if rcvr_sub.name == new_sub.name:
+                        merge_times(rcvr_sub, new_sub)
                         break
                 else:
-                    new_child.parent = rcvr
-                    rcvr.children[child_pos] += [new_child]
+                    new_sub.parent = rcvr
+                    rcvr.subdivisions[sub_pos] += [new_sub]
         else:
-            for child in new_children:
-                child.parent = rcvr
-            rcvr.children[child_pos] = new_children
+            for sub in new_subdivisions:
+                sub.parent = rcvr
+            rcvr.subdivisions[sub_pos] = new_subdivisions
     # Clean up references to old data as we go (not sure if helpful?).
-    new.children.clear()
+    new.subdivisions.clear()
 
 
 def _merge_dict(rcvr, new, attr):

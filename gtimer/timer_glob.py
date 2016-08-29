@@ -1,6 +1,6 @@
 
 """
-Timer() functions acting on global variables (many exposed to user).
+Timer() functions acting on global variables (most exposed to user).
 """
 
 from timeit import default_timer as timer
@@ -15,7 +15,7 @@ import times_glob
 def start():
     if g.sf.cum:
         raise RuntimeError("Already have stamps, can't start again.")
-    if g.tf.children_awaiting:
+    if g.tf.subdivisions_awaiting:
         raise RuntimeError("Already have lower level timers, can't start again.")
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped (must close and open new).")
@@ -27,7 +27,7 @@ def start():
     return t
 
 
-def stamp(name, unique=True):
+def stamp(name, unique=True, keep_subdivisions=True):
     t = timer()
     elapsed = t - g.tf.last_t
     name = str(name)
@@ -46,29 +46,29 @@ def stamp(name, unique=True):
             raise ValueError("Duplicate stamp name: {}".format(name))
         else:
             g.sf.cum[name] += elapsed
-    if g.tf.children_awaiting:
-        times_glob.assign_children(name)
-    if g.tf.par_children_awaiting:
-        times_glob.par_assign_children(name)
-    g.tf.last_t = t
-    g.rf.self_cut += timer() - t
-    g.rf.self_agg += g.rf.self_cut
+    if keep_subdivisions:
+        if g.tf.subdivisions_awaiting:
+            times_glob.assign_subdivisions(name)
+        if g.tf.par_subdivisions_awaiting:
+            times_glob.assign_par_subdivisions(name)
+    g.tf.last_t = timer()
+    g.tf.self_cut += g.tf.last_t - t
     return t
 
 
-def stop(name=None, unique=True):
+def stop(name=None, unique=True, keep_subdivisions=True):
     t = timer()
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped.")
     if name is not None:
         if g.tf.paused:
             raise RuntimeError("Cannot apply stopping stamp to paused timer.")
-        stamp(name, unique)
-    else:
-        if g.tf.children_awaiting:
-            times_glob.assign_children(g.UNASGN)
-        if g.tf.par_children_awaiting:
-            times_glob.par_assign_children(g.UNASGN)
+        stamp(name, unique, keep_subdivisions)
+    if keep_subdivisions:
+        if g.tf.subdivisions_awaiting:
+            times_glob.assign_subdivisions(g.UNASGN)
+        if g.tf.par_subdivisions_awaiting:
+            times_glob.assign_par_subdivisions(g.UNASGN)
     for _, v in g.sf.cum.iteritems():
         g.sf.sum_t += v
     for s in g.tf.rgstr_stamps:
@@ -77,8 +77,9 @@ def stop(name=None, unique=True):
             g.sf.order.append(s)
     if not g.tf.paused:
         g.tf.tmp_total += t - g.tf.start_t
-    g.rf.total = g.tf.tmp_total - g.rf.self_cut
-    g.rf.self_cut += timer() - t  # (Add after setting g.rf.total)
+    stop_time = timer() - t
+    g.tf.self_cut += stop_time
+    g.tf.tmp_total += stop_time  # (self_cut will be subtracted)
     times_glob.dump_times()
     return t
 
@@ -108,12 +109,18 @@ def resume():
     return t
 
 
-def b_stamp(*args, **kwargs):
-    """Blank stamp."""
+def b_stamp(name=None, unique=False, keep_subdivisions=False):
+    """Blank stamp (same signature as stamp())."""
+    t = timer()
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped.")
-    t = timer()
-    g.tf.last_t = t
+    if keep_subdivisions:
+        if g.tf.subdivisions_awaiting:
+            times_glob.assign_subdivisions(g.UNASGN)
+        if g.tf.par_subdivisions_awaiting:
+            times_glob.assign_par_subdivisions(g.UNASGN)
+    g.tf.last_t = timer()
+    g.tf.self_cut += g.tf.last_t - t
     return t
 
 #

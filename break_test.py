@@ -35,20 +35,37 @@ gt.stamp('first')
 #     gt.stamp('lB')
 
 loop = gt.timed_for([1, 2, 3], 'forfor')
-# with loop:
-i = 0
 for i in loop:
-    # loop.next()
     print i
-    if i == 3:
-        # gt.break_for()
-        loop.exit()
-        break
     time.sleep(0.1)
-    i += 1
-    gt.stamp('welp')
-loop.exit()
+    gt.stamp('loop1')
+    if i == 2:
+        gt.subdivide('perwhoops')
+        time.sleep(0.1)
+        gt.stamp('yeah')
+        gt.end_subdivision()
+        gt.stamp('that one time')
 
+
+
+
+# with loop:
+# for i in loop:
+#     # loop.next()
+#     print i
+#     # if i == 3:
+#     #     # gt.break_for()
+#     #     loop.exit()
+#     #     break
+#     time.sleep(0.1)
+#     i += 1
+#     gt.stamp('welp')
+# # loop.exit()
+
+# for j in loop:
+#     print j
+#     time.sleep(0.1)
+#     gt.stamp('womp')
 
 # loop2 = gt.timed_while('loopC')
 # for i in loop2:

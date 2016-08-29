@@ -3,6 +3,7 @@
 Times() functions acting on global variables (hidden from user).
 """
 
+from timeit import default_timer as timer
 import data_glob as g
 import times_loc
 
@@ -12,56 +13,62 @@ import times_loc
 #
 
 
-def assign_children(position):
-    new_pos = position not in g.rf.children and g.tf.children_awaiting
-    for _, child_times in g.tf.children_awaiting.iteritems():
-        times_loc.aggregate_up_self(g.rf, child_times.self_agg)
-        child_times.pos_in_parent = position  # (Not needed for merge case but OK.)
-    if new_pos:
-        g.rf.children[position] = list()
-        for _, child_times in g.tf.children_awaiting.iteritems():
-            g.rf.children[position] += [child_times]
-    else:
-        for _, child_times in g.tf.children_awaiting.iteritems():
-            is_prev_child = False
-            for old_child in g.rf.children[position]:
-                if old_child.name == child_times.name:
-                    is_prev_child = True
-                    break
-            if is_prev_child:
-                times_loc.merge_times(old_child, child_times, stamps_as_itrs=g.tf.save_itrs)
-            else:
-                g.rf.children[position].append(child_times)
-    g.tf.children_awaiting.clear()
-
-
 def dump_times():
+    g.rf.total = g.tf.tmp_total - g.tf.self_cut
+    g.rf.self_agg += g.tf.self_cut
     if g.tf.dump is not None:
+        t = timer()
         times_loc.merge_times(g.tf.dump, g.rf, stamps_as_itr=g.tf.save_itrs)
+        g.tf.dump.parent.self_agg += timer() - t + g.rf.self_agg
+    elif g.rf.parent is not None:
+        g.rf.parent.self_agg += g.rf.self_agg
 
 
-def par_assign_children(position):
-    new_pos = position not in g.rf.par_children and g.tf.children_awaiting
-    for par_name, child_list in g.tf.children_awaiting:
-        max_self_agg = max([times.self_agg for times in child_list])
-        times_loc.aggregate_up_self(g.rf, max_self_agg)
-        for child in child_list:
-            child.pos_in_parent = position
+def assign_subdivisions(position):
+    new_pos = position not in g.rf.subdivisions and g.tf.subdivisions_awaiting
     if new_pos:
-        g.rf.par_children[position] = g.tf.children_awaiting
+        g.rf.subdivisions[position] = list()
+        for _, sub_times in g.tf.subdivisions_awaiting.iteritems():
+            sub_times.pos_in_parent = position
+            g.rf.subdivisions[position] += [sub_times]
     else:
-        for par_name, child_list in g.tf.children_awaiting:
-            if par_name not in g.rf.par_children[position]:
-                g.rf.par_children[position][par_name] = child_list
+        for _, sub_times in g.tf.subdivisions_awaiting.iteritems():
+            is_prev_sub = False
+            for old_sub in g.rf.subdivisions[position]:
+                if old_sub.name == sub_times.name:
+                    is_prev_sub = True
+                    break
+            if is_prev_sub:
+                times_loc.merge_times(old_sub, sub_times, stamps_as_itrs=g.tf.save_itrs)
             else:
-                for child_times in child_list:
-                    is_prev_child = False
-                    for old_child in g.rf.children[position][par_name]:
-                        if old_child.name == child_times.name:
-                            is_prev_child = True
+                sub_times.pos_in_parent = position
+                g.rf.subdivisions[position].append(sub_times)
+    g.tf.subdivisions_awaiting.clear()
+
+
+def par_assign_subdivisions(position):
+    new_pos = position not in g.rf.par_subdivisions and g.tf.subdivisions_awaiting
+    if new_pos:
+        for par_name, sub_list in g.tf.subdivisions_awaiting:
+            for sub_times in sub_list:
+                sub_times.pos_in_parent = position
+        g.rf.par_subdivisions[position] = g.tf.subdivisions_awaiting
+    else:
+        for par_name, sub_list in g.tf.subdivisions_awaiting:
+            if par_name not in g.rf.par_subdivisions[position]:
+                for sub_times in sub_list:
+                    sub_times.pos_in_parent = position
+                g.rf.par_subdivisions[position][par_name] = sub_list
+            else:
+                for sub_times in sub_list:
+                    is_prev_sub = False
+                    for old_sub in g.rf.subdivisions[position][par_name]:
+                        if old_sub.name == sub_times.name:
+                            is_prev_sub = True
                             break
-                    if is_prev_child:
-                        times_loc.merge_times(old_child, child_times, stamps_as_itrs=g.tf.save_itrs)
+                    if is_prev_sub:
+                        times_loc.merge_times(old_sub, sub_times, stamps_as_itrs=g.tf.save_itrs)
                     else:
-                        g.rf.children[position][par_name].append(child_times)
-    g.tf.par_children_awaiting.clear()
+                        sub_times.pos_in_parent = position
+                        g.rf.subdivisions[position][par_name].append(sub_times)
+    g.tf.par_subdivisions_awaiting.clear()

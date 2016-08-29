@@ -25,6 +25,7 @@ class Timer(object):
         self.dump = dump  # refers to a Times instance
         self.in_loop = bool(in_loop)
         self.times = None
+        self.user_subdivision = False
         self.reset()
         self.times = Times(name, **kwargs)
 
@@ -32,8 +33,9 @@ class Timer(object):
         self.stopped = False
         self.paused = False
         self.tmp_total = 0.
-        self.children_awaiting = dict()
-        self.par_children_awaiting = dict()
+        self.self_cut = 0.
+        self.subdivisions_awaiting = dict()
+        self.par_subdivisions_awaiting = dict()
         self.start_t = timer()
         self.last_t = self.start_t
         if self.times is not None:
@@ -55,25 +57,24 @@ class Times(object):
         new = type(self)()
         new.__dict__.update(self.__dict__)
         new.stamps = copy.deepcopy(self.stamps, memo)
-        new.children = copy.deepcopy(self.children, memo)
-        new.par_children = copy.deepcopy(self.par_children, memo)
+        new.subdivisions = copy.deepcopy(self.subdivisions, memo)
+        new.par_subdivisions = copy.deepcopy(self.par_subdivisions, memo)
         # Avoid deepcopy of parent, and update attribute.
-        for _, child_list in new.children:
-            for child in child_list:
-                child.parent = self
-        for _, list_of_child_lists in new.par_children:
-            for child_list in list_of_child_lists:
-                for child in child_list:
-                    child.parent = self
+        for _, sub_list in new.subdivisions:
+            for sub in sub_list:
+                sub.parent = self
+        for _, list_of_sub_lists in new.par_subdivisions:
+            for sub_list in list_of_sub_lists:
+                for sub in sub_list:
+                    sub.parent = self
         return new
 
     def reset(self):
         self.stamps = Stamps()
         self.total = 0.
-        self.self_cut = 0.
         self.self_agg = 0.
-        self.children = dict()
-        self.par_children = dict()
+        self.subdivisions = dict()
+        self.par_subdivisions = dict()
         self.par_in_parent = False
 
 
