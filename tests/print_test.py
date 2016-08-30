@@ -1,5 +1,5 @@
 # print test.
-import gtimer as gt
+import gtimer.gtimer as gt
 import time
 
 

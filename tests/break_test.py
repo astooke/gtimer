@@ -1,4 +1,4 @@
-import gtimer.gtimer as gt
+import gtimer as gt
 import time
 
 
