@@ -152,6 +152,7 @@ def _report_header(times):
     FMT = FMTS_RPT['Header']
     rep = FMT['HDR_STR'].format('Timer Name' + FMT['APND'], times.name)
     rep += FMT['HDR_FLT'].format('Total Time (s)' + FMT['APND'], times.total)
+    rep += FMT['HDR_FLT'].format('Stamps Sum' + FMT['APND'], times.stamps_sum)
     rep += FMT['HDR_FLT'].format('Self Time (Agg.)' + FMT['APND'], times.self_agg)
     return rep
 
@@ -165,7 +166,7 @@ def _report_stamps(times, indent=0, par=False):
         stamp_str += FMT['PAR'] if par else ''
         rep += FMT['STMP'].format(FMT['IDT_SYM'] * indent, stamp_str, stamps.cum[stamp])
         if stamp in times.subdivisions:
-            _report_sub_times(times.subidivions[stamp], indent, par=par)
+            _report_sub_times(times.subdivisions[stamp], indent, par=par)
         if stamp in times.par_subdivisions:
             _report_par_sub_times(times.par_subdivisions[stamp], indent)
     if UNASGN in times.subdivisions:
@@ -194,7 +195,7 @@ def _report_par_sub_times(par_subdivisions, indent):
     return rep
 
 
-def _report_itrs(times, FMTS_RPT, delim_mode=False):
+def _report_itrs(times, delim_mode=False):
     FMT = FMTS_RPT['Itrs']
     rep = ''
     stamps = times.stamps
@@ -237,7 +238,7 @@ def _report_itrs(times, FMTS_RPT, delim_mode=False):
     for _, subdivisions in times.subdivisions.iteritems():
         for sub_times in subdivisions:
             rep += _report_itrs(sub_times, delim_mode)
-    for _, par_subdivisions in times.par_subdivisions.iter_items():
+    for _, par_subdivisions in times.par_subdivisions.iteritems():
         for _, par_list in par_subdivisions.iteritems():
             sub_with_max_tot = max(par_list, key=lambda x: x.total)
             rep += _report_itrs(sub_with_max_tot, delim_mode)

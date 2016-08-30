@@ -15,6 +15,7 @@ import times_loc
 
 def dump_times():
     g.rf.total = g.tf.tmp_total - g.rf.self_agg  # (have already subtracted self_cut)
+    g.rf.stamps_sum = sum([v for _, v in g.sf.cum.iteritems()])
     g.rf.self_agg += g.tf.self_cut  # (now add self_cut including self time of stop())
     if g.tf.dump is not None:
         t = timer()

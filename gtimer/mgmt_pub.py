@@ -25,10 +25,7 @@ def subdivide(name, rgstr_stamps=list(), save_itrs=True):
     else:
         # No previous, write times directly to awaiting sub in parent times.
         g.create_next_timer(name, rgstr_stamps, save_itrs, parent=g.rf)
-        new_times = g.rf
-        g.focus_backward_timer()
-        g.tf.subdivisions_awaiting[name] = new_times
-        g.focus_forward_timer()
+        g.tfmin1.subdivisions_awaiting[name] = g.rf
     g.tf.user_subdivision = True
 
 
@@ -81,7 +78,7 @@ def get_times():
     return copy.deepcopy(g.rf)
 
 
-def attach_par_subdivisions(par_name, par_times, stamps_as_itrs=True):
+def attach_par_subdivision(par_name, par_times, stamps_as_itrs=True):
     """ Manual assignment of a group of (stopped) times objects as a parallel
     subdivision of a running timer.
     """

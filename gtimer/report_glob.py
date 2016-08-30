@@ -6,6 +6,8 @@ Reporting functions acting on global variables (all are exposed to user).
 import data_glob as g
 import report_loc
 from timer_classes import Times
+import mgmt_priv
+from timeit import default_timer as timer
 
 #
 # Reporting functions to expose to the user.
@@ -17,7 +19,20 @@ def report(times=None,
            delim_mode=False,
            format_options=dict()):
     if times is None:
-        return report_loc.report(g.root_timer.times, include_itrs, delim_mode)
+        if g.root_timer.stopped:
+            return report_loc.report(g.root_timer.times,
+                                     include_itrs,
+                                     delim_mode,
+                                     format_options)
+        else:
+            t = timer()
+            current_times = mgmt_priv.collapse_times()
+            rep = report_loc.report(current_times,
+                                    include_itrs,
+                                    delim_mode,
+                                    format_options)
+            g.root_timer.self_cut += timer() - t
+            return rep
     else:
         if not isinstance(times, Times):
             raise TypeError('Need a Times object to report (default is root).')

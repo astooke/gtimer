@@ -9,10 +9,7 @@ if 'GTIMER_DISABLE' in os.environ:
 
 if DISABLED:
     # Contents of these might be out of date.
-    from disabled.timer_glob_d import *
-    from disabled.loop_d import *
-    from disabled.timer_mgmt_d import *
-    from disabled.report_glob_d import *
+    from disabled import *
 else:
     from timer_glob import *
     from loop import *
@@ -26,14 +23,11 @@ else:
 #
 # 11. make my own error classes?
 # 15. DUH: MULTIPROCESSING!!!
-# 16. Reporting in the middle of timing...?
 # 10. stamp itr statistics (running avg, running stdev?) -- remember stamps sum!!
-# 23. re-think where we hold save_itrs just for its interaction with 
+# 23. re-think where we hold save_itrs just for its interaction with
 #     stamps_as_itrs
-# 24. Fix tree traversal code to cope with parallel children?
-# 28. Just group all the disabled into one file.
 # 29. Put in functions to save (pickle: to file? to RAM?) and load.
-# 31. TEST REPORTING. TEST TEST
+# 31. TEST REPORTING. TEST TEST COMPARISON REPORTING
 
 
 #
@@ -46,6 +40,13 @@ else:
 #
 #               .. to DONE...
 
+# 24. Fix tree traversal code to cope with parallel children?
+# 34. write an initialize stamp function...seeing this in a lot of places.
+# 33. merge times par subdivisions!?
+# 28. Just group all the disabled into one file.
+# 32.  TEST REPORTING DURING TIMING.
+# 16. Reporting in the middle of timing...?
+# 32. Downgrade the focusing stack.
 # 30. In reporting, need to go back and check that par children are shown,
 #     even if just the max total one.
 # 26. print a parallel section like this: make the full tree of all the
