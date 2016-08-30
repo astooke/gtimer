@@ -27,19 +27,13 @@ else:
 # 11. make my own error classes?
 # 15. DUH: MULTIPROCESSING!!!
 # 16. Reporting in the middle of timing...?
-# 18. Make a reporting function that takes many timers (i.e. many
-#     different runs of the same program), and makes tables of all
-#     their stamps.  So that each table has TIMER on one axis and
-#     STAMP on the other...yes this is what I'm really after!
-# 10. stamp itr statistics (running avg, running stdev?)
+# 10. stamp itr statistics (running avg, running stdev?) -- remember stamps sum!!
 # 23. re-think where we hold save_itrs just for its interaction with 
 #     stamps_as_itrs
 # 24. Fix tree traversal code to cope with parallel children?
-# 25. print stamps from parallel like this: take the stamps from the one
-#     that took the longest time.
-# 26. print a parallel section like this: make the full tree of all the
-#     stamps from all the parallel children, then leave a blank or a '--'
-#     for the children who don't have that stamp.
+# 28. Just group all the disabled into one file.
+# 29. Put in functions to save (pickle: to file? to RAM?) and load.
+# 31. TEST REPORTING. TEST TEST
 
 
 #
@@ -52,6 +46,17 @@ else:
 #
 #               .. to DONE...
 
+# 30. In reporting, need to go back and check that par children are shown,
+#     even if just the max total one.
+# 26. print a parallel section like this: make the full tree of all the
+#     stamps from all the parallel children, then leave a blank or a '--'
+#     for the children who don't have that stamp.
+# 18. Make a reporting function that takes many timers (i.e. many
+#     different runs of the same program), and makes tables of all
+#     their stamps.  So that each table has TIMER on one axis and
+#     STAMP on the other...yes this is what I'm really after!
+# 25. print stamps from parallel like this: take the stamps from the one
+#     that took the longest time.
 # 17. Test behavior in un-timed loop inside of timed loop
 # 27. Protect against user closing a timer...should also protect against
 #     automated closing of user timer!

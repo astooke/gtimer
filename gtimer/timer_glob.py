@@ -14,14 +14,14 @@ import times_glob
 
 def start():
     if g.sf.cum:
-        raise RuntimeError("Already have stamps, can't start again.")
-    if g.tf.subdivisions_awaiting:
-        raise RuntimeError("Already have lower level timers, can't start again.")
+        raise RuntimeError("Already have stamps, can't start again (must reset).")
+    if g.tf.subdivisions_awaiting or g.tf.subdivisions:
+        raise RuntimeError("Already have lower level timers, can't start again (must reset).")
     if g.tf.stopped:
-        raise RuntimeError("Timer already stopped (must close and open new).")
-    t = timer()
+        raise RuntimeError("Timer already stopped (must open new or reset).")
     g.tf.paused = False
-    g.rf.total = 0.  # (In case previously paused.)
+    g.tf.tmp_total = 0.  # (In case previously paused.)
+    t = timer()
     g.tf.start_t = t
     g.tf.last_t = t
     return t
@@ -77,9 +77,8 @@ def stop(name=None, unique=True, keep_subdivisions=True):
             g.sf.order.append(s)
     if not g.tf.paused:
         g.tf.tmp_total += t - g.tf.start_t
-    stop_time = timer() - t
-    g.tf.self_cut += stop_time
-    g.tf.tmp_total += stop_time  # (self_cut will be subtracted)
+    g.tf.tmp_total -= g.tf.self_cut
+    g.tf.self_cut += timer() - t  # do this AFTER the subtraction from tmp_total
     times_glob.dump_times()
     return t
 

@@ -14,8 +14,8 @@ import times_loc
 
 
 def dump_times():
-    g.rf.total = g.tf.tmp_total - g.tf.self_cut
-    g.rf.self_agg += g.tf.self_cut
+    g.rf.total = g.tf.tmp_total - g.rf.self_agg  # (have already subtracted self_cut)
+    g.rf.self_agg += g.tf.self_cut  # (now add self_cut including self time of stop())
     if g.tf.dump is not None:
         t = timer()
         times_loc.merge_times(g.tf.dump, g.rf, stamps_as_itr=g.tf.save_itrs)

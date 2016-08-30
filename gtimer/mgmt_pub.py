@@ -4,6 +4,7 @@ Functions for creating new timers, closing old ones, and handling the
 relationships of the timers. (All exposed to user.)
 """
 
+from timeit import default_timer as timer
 import data_glob as g
 import timer_glob
 import mgmt_priv
@@ -43,7 +44,6 @@ def end_subdivision():
 
 def wrap(func, subdivision=True, rgstr_stamps=list(), save_itrs=True):
     subdivision = bool(subdivision)
-
     if subdivision:
         name = func.__name__
         rgstr_stamps = mgmt_priv.sanitize_rgstr_stamps(rgstr_stamps)
@@ -85,13 +85,14 @@ def attach_par_subdivisions(par_name, par_times, stamps_as_itrs=True):
     """ Manual assignment of a group of (stopped) times objects as a parallel
     subdivision of a running timer.
     """
+    t = timer()
     if not isinstance(par_times, (list, tuple)):
         raise TypeError("Expected list or tuple for par_times arg.")
     for times in par_times:
         if not isinstance(times, Times):
             raise TypeError("Expected each element of par_times to be Times object.")
         if not times.total > 0.:
-            raise RuntimeError("Attached par subdivision has total time 0, either empty or not yet stopped.")
+            raise RuntimeError("An attached par subdivision has total time 0, either empty or not yet stopped.")
     par_name = str(par_name)
     sub_with_max_tot = max(par_times, key=lambda x: x.total)
     g.rf.self_agg += sub_with_max_tot.self_agg
@@ -116,12 +117,14 @@ def attach_par_subdivisions(par_name, par_times, stamps_as_itrs=True):
                 new_sub_copy.parent = g.rf
                 new_sub_copy.par_in_parent = True
                 g.tf.par_subdivisions_awaiting[par_name].append(new_sub_copy)
+    g.tf.self_cut += timer() - t
 
 
 def attach_subdivision(times, stamps_as_itrs=True):
     """ Manual assignment of a (stopped) times object as a subdivision of
     running timer.
     """
+    t = timer()
     if not isinstance(times, Times):
         raise TypeError("Expected Times object input.")
     if not times.total > 0.:
@@ -136,3 +139,4 @@ def attach_subdivision(times, stamps_as_itrs=True):
         times_loc.merge_times(g.tf.subdivisions_awaiting[name],
                               times,
                               stamps_as_itrs)
+    g.tf.self_cut += timer() - t
