@@ -34,15 +34,15 @@ class Timer(object):
     def __deepcopy__(self, memo):
         new = type(self)(self.name)
         new.__dict__.update(self.__dict__)
-        new.subdivisions_awaiting = copy.deepcopy(self.subdivisions_awaiting, memo)
-        new.par_subdivisions_awaiting = copy.deepcopy(self.par_subdivisions_awaiting, memo)
-        for _, sub_times in new.subdivisions_awaiting.iteritems():
+        new.subdvsn_awaiting = copy.deepcopy(self.subdvsn_awaiting, memo)
+        new.par_subdvsn_awaiting = copy.deepcopy(self.par_subdvsn_awaiting, memo)
+        for _, sub_times in new.subdvsn_awaiting.iteritems():
             sub_times.parent = new.times
-        for _, sub_list in new.par_subdivisions_awaiting.iteritems():
+        for _, sub_list in new.par_subdvsn_awaiting.iteritems():
             for sub_times in sub_list:
                 sub_times.parent = new.times
         new.times = copy.deepcopy(self.times, memo)
-        # WARNING: Does not update the dump reference, must be done externally.
+        # Dump needs rest of stack, see mgmt_priv.copy_timer_stack()
         new.dump = None
         return new
 
@@ -51,8 +51,8 @@ class Timer(object):
         self.paused = False
         self.tmp_total = 0.
         self.self_cut = 0.
-        self.subdivisions_awaiting = dict()
-        self.par_subdivisions_awaiting = dict()
+        self.subdvsn_awaiting = dict()
+        self.par_subdvsn_awaiting = dict()
         self.start_t = timer()
         self.last_t = self.start_t
         if self.times is not None:
@@ -64,26 +64,26 @@ class Times(object):
     (Survives after timing is complete).
     """
 
-    def __init__(self, name, parent=None, pos_in_parent=None):
-        self.name = str(name)
+    def __init__(self, name=None, parent=None, pos_in_parent=None):
+        self.name = None if name is None else str(name)
         self.parent = parent  # refer to another Times instance.
         self.pos_in_parent = pos_in_parent  # refers to a stamp name.
         self.reset()
 
     def __deepcopy__(self, memo):
-        new = type(self)(self.name)
+        new = type(self)()
         new.__dict__.update(self.__dict__)
         new.stamps = copy.deepcopy(self.stamps, memo)
-        new.subdivisions = copy.deepcopy(self.subdivisions, memo)
-        new.par_subdivisions = copy.deepcopy(self.par_subdivisions, memo)
+        new.subdvsn = copy.deepcopy(new.subdvsn, memo)
+        new.par_subdvsn = copy.deepcopy(self.par_subdvsn, memo)
         # Avoid deepcopy of parent, and update that attribute.
-        for _, sub_list in new.subdivisions.iteritems():
+        for _, sub_list in new.subdvsn.iteritems():
             for sub in sub_list:
-                sub.parent = self
-        for _, par_dict in new.par_subdivisions.iteritems():
+                sub.parent = new
+        for _, par_dict in new.par_subdvsn.iteritems():
             for _, par_list in par_dict.iteritems():
                 for sub in par_list:
-                    sub.parent = self
+                    sub.parent = new
         return new
 
     def reset(self):
@@ -91,8 +91,8 @@ class Times(object):
         self.total = 0.
         self.stamps_sum = 0.
         self.self_agg = 0.
-        self.subdivisions = dict()
-        self.par_subdivisions = dict()
+        self.subdvsn = dict()
+        self.par_subdvsn = dict()
         self.par_in_parent = False
 
 
@@ -101,5 +101,7 @@ class Stamps(object):
     def __init__(self):
         self.cum = dict()
         self.itrs = dict()
-        self.num_itrs = dict()
+        self.itr_num = dict()
+        self.itr_max = dict()
+        self.itr_min = dict()
         self.order = list()

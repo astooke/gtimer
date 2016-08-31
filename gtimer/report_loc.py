@@ -18,39 +18,39 @@ def report(times, include_itrs=True, delim_mode=False, format_options=dict()):
     rep += _report_header(times)
     rep += FMT['INT']
     rep += _report_stamps(times)
-    if include_itrs:
-        rep_itrs = _report_itrs(times, delim_mode)
-        if rep_itrs:
-            rep += FMT['ITR']
-            rep += rep_itrs
+    rep_itrs = _report_itrs(times, delim_mode, include_itrs)
+    if rep_itrs:
+        rep += FMT['ITR']
+        rep += rep_itrs
     rep += FMT['END'].format(times.name)
     return rep
 
 
 def compare(times_list,
+            name=None,
             include_list=True,
             include_stats=True,
             delim_mode=False,
             format_options=dict()):
 
     delim_mode = bool(delim_mode)
-
+    name = 'Unnamed' if name is None else str(name)
     # Assemble data.
     master_stamps = CompareTimes()
     _build_master(master_stamps, times_list)
 
     # Write report.
     _define_compare_formats(delim_mode, format_options)
-    rep = ''
-    rep += "\n\n---Parallel / Comparison Report---"
+    FMT = FMTS_CMP['Compare']
+    rep = FMT['BEGIN'].format(name)
     if include_list:
         rep += _compare_list(times_list, master_stamps, delim_mode)
     if include_stats:
         _populate_compare_stats(master_stamps)
         rep += _compare_stats(times_list, master_stamps, delim_mode)
     if not include_list and not include_stats:
-        rep += "\n(Neither list nor stats selected for reporting.)\n"
-    rep += "\n---End Parallel / Comparison Report---"
+        rep += FMT['NONE']
+    rep += FMT['END'].format(name)
     return rep
 
 
@@ -83,9 +83,9 @@ def _define_report_formats(delim_mode, fmt_opts):
 
         RPRT = {
             'BEGIN': "Timer Report ({})\n",  # accepts: times.name
-            'INT': "Intervals\n",
+            'INT': "\n\nIntervals\n",
             'ITR': "\n\nLoop Iterations\n",
-            'END': "End ({})"  # accepts: times.name
+            'END': "\n\nEnd ({})"  # accepts: times.name
         }
         HDR = {
             'HDR_STR': "\n{{}}{}{{}}".format(DELIM),  # accepts: label, value
@@ -106,11 +106,18 @@ def _define_report_formats(delim_mode, fmt_opts):
             'VAL': "{}{{}}".format(DELIM),  # accepts: value
             'NON': "{}".format(DELIM),
         }
+        STATS = {
+            'HDR': "{}{{}}".format(DELIM),  # accepts: label
+            'STMP': "\n{}",  # accepts: name
+            'FLT': "{}{{}}".format(DELIM),  # accepts: float
+            'INT': "{}{{}}".format(DELIM),  # accepts: int
+            'LNG': DELIM
+        }
     else:
         STMP_NAME = 20 if 'stamp_name_width' not in fmt_opts else int(fmt_opts['stamp_name_width'])
         ITR_TAB = 2 if 'itr_tab_width' not in fmt_opts else int(fmt_opts['itr_tab_width'])
         ITR_NUM = 6 if 'itr_num_width' not in fmt_opts else int(fmt_opts['itr_num_width'])
-        ITR_NAME = 14 if 'itr_name_width' not in fmt_opts else int(fmt_opts['itr_name_width'])
+        ITR_NAME = 12 if 'itr_name_width' not in fmt_opts else int(fmt_opts['itr_name_width'])
         if ITR_TAB < 1 or ITR_NUM < 1 or ITR_NAME < 1:
             raise ValueError("Cannot have any width less than 1.")
         ITR_SPC = ITR_TAB + ITR_NAME - ITR_NUM
@@ -121,7 +128,7 @@ def _define_report_formats(delim_mode, fmt_opts):
             'BEGIN': "\n---Begin Timer Report ({})---",  # accepts: times.name
             'INT': "\n\n\nIntervals\n---------",
             'ITR': "\n\n\nLoop Iterations\n---------------",
-            'END': "\n---End Timer Report ({})---\n",  # accepts, times.name
+            'END': "\n\n---End Timer Report ({})---\n",  # accepts, times.name
         }
         HDR = {
             'HDR_STR': "\n{:<20} {}",  # accepts: label, value
@@ -145,7 +152,15 @@ def _define_report_formats(delim_mode, fmt_opts):
             'ITR_TAB': ITR_TAB,
             'ITR_NAME': ITR_NAME
         }
-    FMTS_RPT = {'Report': RPRT, 'Header': HDR, 'Stamps': STMP, 'Itrs': ITRS}
+        STATS = {
+            'HDR': "{}{{:>{}}}".format(' ' * ITR_TAB, ITR_NUM),  # accepts: label
+            'STMP': "\n{{:<{}}}".format(ITR_NAME),  # accepts: name
+            'FLT': "{}{{:{}.2f}}".format(' ' * ITR_TAB, ITR_NUM),  # accepts: float
+            'INT': "{}{{:>{},d}}".format(' ' * ITR_TAB, ITR_NUM),  # accepts: int
+            'LNG': ' '
+        }
+
+    FMTS_RPT = {'Report': RPRT, 'Header': HDR, 'Stamps': STMP, 'Itrs': ITRS, 'Stats': STATS}
 
 
 def _report_header(times):
@@ -165,46 +180,79 @@ def _report_stamps(times, indent=0, par=False):
         stamp_str = stamp + FMT['SPC']
         stamp_str += FMT['PAR'] if par else ''
         rep += FMT['STMP'].format(FMT['IDT_SYM'] * indent, stamp_str, stamps.cum[stamp])
-        if stamp in times.subdivisions:
-            _report_sub_times(times.subdivisions[stamp], indent, par=par)
-        if stamp in times.par_subdivisions:
-            _report_par_sub_times(times.par_subdivisions[stamp], indent)
-    if UNASGN in times.subdivisions:
+        if stamp in times.subdvsn:
+            rep += _report_sub_times(times.subdvsn[stamp], indent, par=par)
+        if stamp in times.par_subdvsn:
+            rep += _report_par_sub_times(times.par_subdvsn[stamp], indent)
+    if UNASGN in times.subdvsn:
         rep += "\n{}{}".format(FMT['IDT_SYM'] * indent, UNASGN)
         _report_sub_times(times.subidivions[UNASGN], indent, par=par)
-    if UNASGN in times.par_subdivisions:
+    if UNASGN in times.par_subdvsn:
         rep += "\n{}{}".format(FMT['IDT_SYM'] * indent, UNASGN)
-        _report_par_sub_times(times.par_subdivisions[UNASGN], indent)
+        _report_par_sub_times(times.par_subdvsn[UNASGN], indent)
     return rep
 
 
-def _report_sub_times(subdivisions, indent, par):
+def _report_sub_times(subdvsn, indent, par):
     rep = ''
-    for sub_times in subdivisions:
+    for sub_times in subdvsn:
         rep += _report_stamps(sub_times, indent + 1, par)
     return rep
 
 
-def _report_par_sub_times(par_subdivisions, indent):
-    FMT = FMTS_RPT['Stamp']
+def _report_par_sub_times(par_subdvsn, indent):
+    FMT = FMTS_RPT['Stamps']
     rep = ''
-    for par_name, par_list in par_subdivisions.iteritems():
+    for par_name, par_list in par_subdvsn.iteritems():
         sub_with_max_tot = max(par_list, key=lambda x: x.total)
         rep += "\n{}{}".format(FMT['IDT_SYM'] * indent, par_name + FMT['PAR'])
         rep += _report_stamps(sub_with_max_tot, indent + 1, par=True)
     return rep
 
 
-def _report_itrs(times, delim_mode=False):
+def _report_itr_stats(times, delim_mode):
+    FMT = FMTS_RPT['Stats']
+    # FMT1 = FMTS_RPT['Stamps']
+    rep = ''
+    rep += "\n" + FMT['STMP'].format('')
+    headers = ['Mean', 'Max', 'Min', 'Num']
+    for hdr in headers:
+        rep += FMT['HDR'].format(hdr)
+    if not delim_mode:
+        rep += FMT['STMP'].format('')
+        for _ in range(len(headers)):
+            rep += FMT['HDR'].format('------')
+    stamps = times.stamps
+    for s, num in stamps.itr_num.iteritems():
+        if num > 1:
+            rep += FMT['STMP'].format(s)
+            values = [stamps.cum[s] / stamps.itr_num[s],
+                      stamps.itr_max[s],
+                      stamps.itr_min[s]]
+            for val in values:
+                rep += FMT['FLT'].format(val)
+            rep += FMT['INT'].format(stamps.itr_num[s])
+    rep += "\n"
+    return rep
+
+
+def _report_itrs(times, delim_mode=False, include_itrs=True):
     FMT = FMTS_RPT['Itrs']
     rep = ''
     stamps = times.stamps
-    if stamps.itrs:
+    any_itrs = False
+    for _, num in stamps.itr_num.iteritems():
+        if num > 1:
+            any_itrs = True
+            break
+    if any_itrs:
         rep += "\n"
         rep += FMT['HDR'].format('Timer' + FMT['APND'], times.name)
         if times.parent is not None:
             lin_str = _fmt_lineage(_get_lineage(times))
             rep += FMT['HDR'].format('Lineage' + FMT['APND'], lin_str)
+        rep += _report_itr_stats(times, delim_mode)
+    if include_itrs and stamps.itrs:
         rep += "\n\nIter."
         itrs_order = []
         is_key_active = []
@@ -235,11 +283,11 @@ def _report_itrs(times, delim_mode=False):
                 rep += next_line
             itr += 1
         rep += "\n"
-    for _, subdivisions in times.subdivisions.iteritems():
-        for sub_times in subdivisions:
+    for _, subdvsn in times.subdvsn.iteritems():
+        for sub_times in subdvsn:
             rep += _report_itrs(sub_times, delim_mode)
-    for _, par_subdivisions in times.par_subdivisions.iteritems():
-        for _, par_list in par_subdivisions.iteritems():
+    for _, par_subdvsn in times.par_subdvsn.iteritems():
+        for _, par_list in par_subdvsn.iteritems():
             sub_with_max_tot = max(par_list, key=lambda x: x.total)
             rep += _report_itrs(sub_with_max_tot, delim_mode)
     return rep
@@ -252,10 +300,11 @@ def _get_lineage(times):
         return tuple()
 
 
-def _fmt_lineage(lineage):
+def _fmt_lineage(lineage, delim_mode=False):
+    FMT = FMTS_RPT['Stats']
     lin_str = ''
     for link in lineage:
-        lin_str += "{} ({})--> ".format(link[0], link[1])
+        lin_str += "{} ({})-->{}".format(link[0], link[1], FMT['LNG'])
     try:
         return lin_str[:-4]
     except IndexError:
@@ -283,27 +332,27 @@ def _build_master_single(master, times, index, num_times):
             if stamp not in master.stamps:
                 master.stamps[stamp] = [''] * num_times
             master.stamps[stamp][index] = val
-        for stamp, sub_list in times.subdivisions:
-            if stamp not in master.subdivisions:
-                master.subdivisions[stamp] = list()
+        for stamp, sub_list in times.subdvsn.iteritems():
+            if stamp not in master.subdvsn:
+                master.subdvsn[stamp] = list()
             for sub_times in sub_list:
                 is_new = True
-                for master_sub in master.subdivisions[stamp]:
+                for master_sub in master.subdvsn[stamp]:
                     if master_sub.name == sub_times.name:
                         is_new = False
                         break
                 if is_new:
                     master_sub = CompareTimes(name=sub_times.name, parent=master)
-                    master.subdivisions[stamp].append(master_sub)
+                    master.subdvsn[stamp].append(master_sub)
                 _build_master_single(master_sub, sub_times, index, num_times)
-        for stamp, par_dict in times.par_subdivisions.iteritems():
-            if stamp not in master.par_subdivisions:
-                master.par_subdivisions[stamp] = dict()
+        for stamp, par_dict in times.par_subdvsn.iteritems():
+            if stamp not in master.par_subdvsn:
+                master.par_subdvsn[stamp] = dict()
             for par_name, par_list in par_dict.iteritems():
-                if par_name not in master.par_subdivisions[stamp]:
+                if par_name not in master.par_subdvsn[stamp]:
                     master_sub = CompareTimes(name=par_name, parent=master)
-                    master.par_subdivisions[stamp][par_name] = master_sub
-                master_sub = master.par_subdivisions[stamp][par_name]
+                    master.par_subdvsn[stamp][par_name] = master_sub
+                master_sub = master.par_subdvsn[stamp][par_name]
                 sub_with_max_tot = max(par_list, key=lambda x: x.total)
                 _build_master_single(master_sub, sub_with_max_tot, index, num_times)
 
@@ -315,8 +364,8 @@ class CompareTimes(object):
         self.parent = parent
         self.stamps = dict()
         self.stats = dict()
-        self.subdivisions = dict()
-        self.par_subdivisions = dict()
+        self.subdvsn = dict()
+        self.par_subdvsn = dict()
 
 
 class StampStats(object):
@@ -332,10 +381,10 @@ class StampStats(object):
 def _populate_compare_stats(master):
     for stamp, values in master.stamps.iteritems():
         master.stats[stamp] = _compute_stats(values)
-    for _, sub_list in master.subdivisions.iteritems():
+    for _, sub_list in master.subdvsn.iteritems():
         for master_sub in sub_list:
             _populate_compare_stats(master_sub)
-    for _, sub_dict in master.par_subdivisions.iteritems():
+    for _, sub_dict in master.par_subdvsn.iteritems():
         for _, master_sub in sub_dict.iteritems():
             _populate_compare_stats(master_sub)
 
@@ -364,44 +413,45 @@ def _define_compare_formats(delim_mode, fmt_opts):
     if delim_mode:
         DELIM = '\t' if 'delimiter' not in fmt_opts else str(fmt_opts['delimiter'])
         IDT_SYM = '+' if 'indent_symbol' not in fmt_opts else str(fmt_opts['indent_symbol'])
-        NAME = "\n{{}}{}{{}}".format(DELIM)  # accepts: indent, name
+        NAME = "\n{}{}"  # accepts: indent, name
         NUM = "{}{{}}".format(DELIM)  # accepts: value
         CMPR = {
-            'BEGIN': "Parallel / Comparison Report ({})\n",  # accepts: par_name?
+            'BEGIN': "Parallel / Comparison \n({})\n",  # accepts: par_name
             'NONE': "\n(Neither list nor stats selected for reporting.)\n",
-            'END': "\nEnd Parallel / Comparison Report"
+            'END': "\nEnd Parallel / Comparison \n({})\n"  # accepts: par_name
         }
         LIST = {
             'HDR': NUM,
             'NAME': NAME,
-            'NM_BNLK': DELIM,
-            'NUM': NUM,
+            'NM_BLNK': DELIM,
+            'FLT': NUM,
+            'INT': NUM,
             'IDT_SYM': IDT_SYM,
             'APND': '',
             'BLNK': DELIM
         }
         STAT = LIST
     else:
-        STMP_NAME = 20 if 'stamp_name_width' not in fmt_opts else int(fmt_opts['stamp_name_width'])
-        LIST_COL = 20 if 'list_column_width' not in fmt_opts else int(fmt_opts['list_column_width'])
+        STMP_NAME = 18 if 'stamp_name_width' not in fmt_opts else int(fmt_opts['stamp_name_width'])
+        LIST_COL = 12 if 'list_column_width' not in fmt_opts else int(fmt_opts['list_column_width'])
         LIST_TAB = 2 if 'list_tab_width' not in fmt_opts else int(fmt_opts['list_tab_width'])
-        STAT_COL = 12 if 'stat_column_width' not in fmt_opts else int(fmt_opts['stat_column_width'])
+        STAT_COL = 8 if 'stat_column_width' not in fmt_opts else int(fmt_opts['stat_column_width'])
         STAT_TAB = 2 if 'stat_tab_width' not in fmt_opts else int(fmt_opts['stat_tab_width'])
-        IDT_SYM = '  ' if 'indent_symbol' not in fmt_opts else str(fmt_opts['indent_symbol'])
+        IDT_SYM = ' ' if 'indent_symbol' not in fmt_opts else str(fmt_opts['indent_symbol'])
         HDR = "{0}{{:>{1}.{1}}}"
         NAME = "\n{{}}{{:.<{}}}".format(STMP_NAME)  # accepts: indent, name
         NUM = "{}{{:{}.2f}}"  # accepts: tab, column width
         BLNK = "{}{}"  # accepts: tab, column width
         CMPR = {
-            'BEGIN': "\n\n---Parallel / Comparison Report ({})\n",  # accepts: par_name?
+            'BEGIN': "\n\n---Parallel / Comparison Report ({})---\n",  # accepts: par_name
             'NONE': "\n(Neither list nor stats selected for reporting.)\n",
-            'END': "\n---End Parallel / Comparison Report---\n"
+            'END': "\n---End Parallel / Comparison Report ({})---\n"
         }
         LIST = {
             'HDR': HDR.format(' ' * LIST_TAB, LIST_COL),  # accepts: name
             'NAME': NAME,
             'NM_BLNK': "\n{}".format(' ' * STMP_NAME),
-            'NUM': NUM.format(' ' * LIST_TAB, LIST_COL),  # accepts: value
+            'FLT': NUM.format(' ' * LIST_TAB, LIST_COL),  # accepts: value
             'IDT_SYM': IDT_SYM,
             'BLNK': BLNK.format(' ' * LIST_TAB, ' ' * LIST_COL),
             'APND': ' '
@@ -410,7 +460,8 @@ def _define_compare_formats(delim_mode, fmt_opts):
             'HDR': HDR.format(' ' * STAT_TAB, STAT_COL),  # accepts: name
             'NAME': NAME,
             'NM_BLNK': "\n{}".format(' ' * STMP_NAME),
-            'NUM': NUM.format(' ' * STAT_TAB, STAT_COL),  # accepts: value
+            'FLT': NUM.format(' ' * STAT_TAB, STAT_COL),  # accepts: value
+            'INT': "{}{{:{},d}}".format(' ' * STAT_TAB, STAT_COL),  # accepts: int
             'IDT_SYM': IDT_SYM,
             'BLNK': BLNK.format(' ' * STAT_TAB, ' ' * STAT_COL),
             'APND': ' '
@@ -420,9 +471,10 @@ def _define_compare_formats(delim_mode, fmt_opts):
 
 def _compare_stats(times_list, master, delim_mode):
     FMT = FMTS_CMP['Stats']
-    rep = ''
+    rep = "\n"
     tot = _compute_stats([times.total for times in times_list])
-    rep += FMT['NM_BLNK']
+    if not delim_mode:
+        rep += FMT['NM_BLNK']
     headers = ['Max', 'Min', 'Mean', 'StDev', 'Num']
     for hdr in headers:
         rep += FMT['HDR'].format(hdr)
@@ -431,9 +483,10 @@ def _compare_stats(times_list, master, delim_mode):
         for _ in range(len(headers)):
             rep += FMT['HDR'].format('------')
     rep += FMT['NAME'].format('', 'Total' + FMT['APND'])
-    values = [tot.max, tot.min, tot.avg, tot.std, tot.num]
-    for val in values:
-        rep += FMT['NUM'].format(val)
+    float_values = [tot.max, tot.min, tot.avg, tot.std]
+    for val in float_values:
+        rep += FMT['FLT'].format(val)
+    rep += FMT['INT'].format(tot.num)
     rep += "\n\n"
     rep += _compare_stamp_stats(master)
     rep += "\n"
@@ -441,23 +494,26 @@ def _compare_stats(times_list, master, delim_mode):
 
 
 def _compare_list(times_list, master, delim_mode):
-    FMT = FMTS_CMP['LIST']
-    rep = ''
-    rep += FMT['NM_BLNK']
-    for i in range(len(times_list)):
-        rep += FMT['HDR'].format(i)
-    rep += FMT['NM_BLNK']
+    FMT = FMTS_CMP['List']
+    rep = "\n"
+    # rep += FMT['NM_BLNK']
+    # for i in range(len(times_list)):
+    #     rep += FMT['HDR'].format(str(i))
+    if not delim_mode:
+        rep += FMT['NM_BLNK']
     for times in times_list:
         rep += FMT['HDR'].format(times.name)
-    rep += "\n"
     if not delim_mode:
         rep += FMT['NM_BLNK']
         for _ in range(len(times_list)):
             rep += FMT['HDR'].format('-------')
     rep += FMT['NAME'].format('', 'Total')
     for times in times_list:
-        rep += FMT['NUM'].format(times.total)
-    rep += "\n\n"
+        rep += FMT['FLT'].format(times.total)
+    rep += FMT['NAME'].format('', 'Stamps Sum')
+    for times in times_list:
+        rep += FMT['FLT'].format(times.stamps_sum)
+    rep += "\n"
     rep += _compare_stamps(master)
     rep += "\n"
     return rep
@@ -468,38 +524,39 @@ def _compare_stamp_stats(master, indent=0):
     rep = ''
     for stamp, s in master.stats.iteritems():
         rep += FMT['NAME'].format(FMT['IDT_SYM'] * indent, stamp + FMT['APND'])
-        values = [s.max, s.min, s.avg, s.std, s.num]
-        for val in values:
+        float_values = [s.max, s.min, s.avg, s.std]
+        for val in float_values:
             if val:
-                rep += FMT['NUM'].format(val)
+                rep += FMT['FLT'].format(val)
             else:
                 rep += FMT['BLNK']
-        if stamp in master.subdivisions:
-            for master_sub in master.subdivisions[stamp]:
+        rep += FMT['INT'].format(s.num)
+        if stamp in master.subdvsn:
+            for master_sub in master.subdvsn[stamp]:
                 rep += _compare_stamp_stats(master_sub, indent + 1)
-        if stamp in master.par_subdivisions:
-            for _, master_sub in master.par_subdivisions[stamp].iteritems():
+        if stamp in master.par_subdvsn:
+            for _, master_sub in master.par_subdvsn[stamp].iteritems():
                 rep += _compare_stamp_stats(master_sub, indent + 1)
     return rep
 
 
 def _compare_stamps(master, indent=0):
-    FMT = FMTS_CMP['LIST']
+    FMT = FMTS_CMP['List']
     rep = ''
     for stamp, values in master.stamps.iteritems():
         rep += FMT['NAME'].format(FMT['IDT_SYM'] * indent, stamp + FMT['APND'])
         for val in values:
             if val:
-                rep += FMT['NUM'].format(val)
+                rep += FMT['FLT'].format(val)
             else:
                 rep += FMT['BLNK']
-        if stamp in master.subdivisions:
-            for master_sub in master.subdivisions[stamp]:
-                rep += _compare_stamps(master_sub)
-        if stamp in master.par_subdivisions:
-            for _, master_sub in master.par_subdivisions[stamp]:
-                rep += _compare_stamps(master_sub)
-
+        if stamp in master.subdvsn:
+            for master_sub in master.subdvsn[stamp]:
+                rep += _compare_stamps(master_sub, indent + 1)
+        if stamp in master.par_subdvsn:
+            for _, master_sub in master.par_subdvsn[stamp]:
+                rep += _compare_stamps(master_sub, indent + 1)
+    return rep
 
 #
 #  Times Structure (not part of parallel / comparison).
@@ -510,10 +567,10 @@ def _write_structure(times, indent=0):
     strct = "\n{}{}".format(' ' * indent, times.name)
     if times.pos_in_parent:
         strct += " ({})".format(times.pos_in_parent)
-    for _, sub_list in times.subdivisions.iteritems():
+    for _, sub_list in times.subdvsn.iteritems():
         for sub_times in sub_list:
             strct += _write_structure(sub_times, indent + 4)
-    for _, par_dict in times.par_subdivisions.iteritems():
+    for _, par_dict in times.par_subdvsn.iteritems():
         for _, par_list in par_dict.iteritems():
             sub_with_max_tot = max(par_list, key=lambda x: x.total)
             strct += _write_structure(sub_with_max_tot, indent + 4)

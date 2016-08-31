@@ -1,21 +1,27 @@
 
+
                  ...TO DO...
 11. make my own error classes?
-15. DUH: MULTIPROCESSING!!!
-10. stamp itr statistics (running avg, running stdev?) -- remember stamps sum!!
 23. re-think where we hold save_itrs just for its interaction with
     stamps_as_itrs
-29. Put in functions to save (pickle: to file? to RAM?) and load.
-31. TEST REPORTING. TEST TEST COMPARISON REPORTING
 32. documentation
+35. Still not sure if the mmap will work, or if when a new one is opened,
+    with only copy access, is that part of memory updated in another process?
+    Should test in simple mp setup!
 
 
               ... LOW PRIORITY...
-8. How to handle multiple separate heap (contexts)? Is this even useful?
-14. NO_CHECK mode? X I don't think it's necessary.
+
 
               .. to DONE...
 
+34. test tab-delim reporting
+31. TEST REPORTING. TEST TEST COMPARISON REPORTING
+33. report itr stats.
+10. stamp itr statistics (running avg, running stdev?) -- remember stamps sum!!
+    A: not doing running std, but max, min, num, and cum.
+29. Put in functions to save (pickle: to file? to RAM?) and load.
+15. DUH: MULTIPROCESSING!!!
 24. Fix tree traversal code to cope with parallel children?
 34. write an initialize stamp function...seeing this in a lot of places.
 33. merge times par subdivisions!?
@@ -66,3 +72,11 @@ N+1. Automate the shortcut building.
 9. Get code files organized into global funcs and private funcs.
 N. Think about how much of focus manager to expose
     to the user for manual manipulation. A: timer_mgmt
+
+       ... WON'T DO NOW...
+8. How to handle multiple separate heap (contexts)? Is this even useful?
+
+
+       ...WON'T DO EVER..
+14. NO_CHECK mode? X I don't think it's necessary.
+

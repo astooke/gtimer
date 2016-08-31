@@ -64,9 +64,9 @@ class Loop(object):
         self.stamps = list()
         self.rgstr_stamps = rgstr_stamps
         self.itr_stamp_used = dict()
-        for s in rgstr_stamps:
-            self.itr_stamp_used[s] = False
         self.save_itrs = save_itrs
+        self.itr_stamps = dict()
+        self.first_itr = True
 
 
 class TimedLoopBase(object):
@@ -175,9 +175,9 @@ def enter_loop(name=None,
     if g.tf.paused:
         raise RuntimeError("Timer paused.")
     if keep_subidivisions:
-        if g.tf.subdivisions_awaiting:
+        if g.tf.subdvsn_awaiting:
             times_glob.assign_subdivisions(g.UNASGN)
-        if g.tf.par_subdivisions_awaiting:
+        if g.tf.par_subdvsn_awaiting:
             times_glob.par_assign_subdivisions(g.UNASGN)
     if name is None:  # Entering anonynous loop.
         if g.tf.in_loop:
@@ -185,10 +185,12 @@ def enter_loop(name=None,
         g.tf.in_loop = True
         g.tf.self_cut += timer() - t
     else:  # Entering a named loop.
-        if not g.tf.in_loop or name not in g.lf.stamps:
+        if not g.tf.in_loop or name not in g.lf.stamps:  # double check this if-logic
             if name in g.sf.cum:
                 raise ValueError("Duplicate name given to loop: {}".format(name))
-            times_glob._init_loop_stamp(name, do_lf=False)
+            timer_glob._init_loop_stamp(name, do_lf=False)
+            if save_itrs:
+                g.sf.itrs[name] = []
         if g.tf.in_loop and name not in g.lf.stamps:
             g.lf.stamps.append(name)
         g.tf.self_cut += timer() - t
@@ -199,7 +201,9 @@ def enter_loop(name=None,
 def loop_start():
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped.")
-    for k in g.lf.itr_stamp_used:
+    for k in g.lf.itr_stamps:
+        # (these are initialized together with same key)
+        g.lf.itr_stamps[k] = 0.
         g.lf.itr_stamp_used[k] = False
 
 
@@ -217,23 +221,43 @@ def loop_end(loop_end_stamp=None,
         t = timer()
         g.tf.last_t = t
         if keep_subdivisions:
-            if g.tf.subdivisions_awaiting:
+            if g.tf.subdvsn_awaiting:
                 times_glob.assign_subdivisions(g.UNASGN)
-            if g.tf.par_subdivisions_awaiting:
+            if g.tf.par_subdvsn_awaiting:
                 times_glob.par_assign_subdivisions(g.UNASGN)
-    for s in g.lf.rgstr_stamps:
-        if not g.lf.itr_stamp_used[s]:
-            if s not in g.lf.stamps:
+    # Prevserve the ordering of stamp names as much as possible, wait until
+    # after first pass to initialize any unused registered stamps.
+    if g.lf.first_itr:
+        g.lf.first_itr = False
+        for s in g.lf.rgstr_stamps:
+            if s not in g.sf.cum:
                 timer_glob._init_loop_stamp(s)
+    for s, used in g.lf.itr_stamp_used.iteritems():
+        if used:
+            val = g.lf.itr_stamps[s]
+            g.sf.cum[s] += val
+            g.sf.itr_num[s] += 1
             if g.lf.save_itrs:
-                g.sf.itrs.append(0.)
+                g.sf.itrs[s].append(val)
+            else:
+                if val > g.sf.itr_max[s]:
+                    g.sf.itr_max[s] = val
+                if val < g.sf.itr_min[s]:
+                    g.sf.itr_min[s] = val
+        elif g.lf.save_itrs and s in g.lf.rgstr_stamps:
+            g.sf.itrs[s].append(0.)
     if g.lf.name is not None:
         # Reach back and stamp in the parent timer.
         elapsed = t - g.tfmin1.last_t
-        g.tfmin1.times.stamps.cum[g.lf.name] += elapsed
-        g.tfmin1.times.stamps.num_itrs[g.lf.name] += 1
+        g.sfmin1.cum[g.lf.name] += elapsed
+        g.sfmin1.itr_num[g.lf.name] += 1
         if g.lf.save_itrs:
-            g.tfmin1.times.stamps.itrs[g.lf.name].append(elapsed)
+            g.sfmin1.itrs[g.lf.name].append(elapsed)
+        else:
+            if elapsed > g.sfmin1.itr_max[g.lf.name]:
+                g.sfmin1.itr_max[g.lf.name] = elapsed
+            if elapsed < g.sfmin1.itr_min[g.lf.name]:
+                g.sfmin1.itr_min[g.lf.name] = elapsed
         g.tfmin1.last_t = t
     g.tf.self_cut += timer() - t
 

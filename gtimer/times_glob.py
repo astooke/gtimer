@@ -17,6 +17,21 @@ def dump_times():
     g.rf.total = g.tf.tmp_total - g.rf.self_agg  # (have already subtracted self_cut)
     g.rf.stamps_sum = sum([v for _, v in g.sf.cum.iteritems()])
     g.rf.self_agg += g.tf.self_cut  # (now add self_cut including self time of stop())
+    if g.sf.itrs:
+        for s, itr_list in g.sf.itrs.iteritems():
+            g.sf.itr_max[s] = max(itr_list)
+            nonzero_itrs = filter(lambda x: x > 0., itr_list)
+            g.sf.itr_num[s] = len(nonzero_itrs)
+            if g.sf.itr_num[s] > 0:
+                g.sf.itr_min[s] = min(nonzero_itrs)
+            else:
+                g.sf.itr_min[s] = 0.
+    for s, val in g.sf.cum.iteritems():
+        # (for saving stamps_as_itr)
+        if s not in g.sf.itr_num:
+            g.sf.itr_num[s] = 1
+            g.sf.itr_max[s] = val
+            g.sf.itr_min[s] = val
     if g.tf.dump is not None:
         t = timer()
         times_loc.merge_times(g.tf.dump, g.rf, stamps_as_itr=g.tf.save_itrs)
@@ -26,16 +41,16 @@ def dump_times():
 
 
 def assign_subdivisions(position):
-    new_pos = position not in g.rf.subdivisions and g.tf.subdivisions_awaiting
+    new_pos = position not in g.rf.subdvsn and g.tf.subdvsn_awaiting
     if new_pos:
-        g.rf.subdivisions[position] = list()
-        for _, sub_times in g.tf.subdivisions_awaiting.iteritems():
+        g.rf.subdvsn[position] = list()
+        for _, sub_times in g.tf.subdvsn_awaiting.iteritems():
             sub_times.pos_in_parent = position
-            g.rf.subdivisions[position] += [sub_times]
+            g.rf.subdvsn[position] += [sub_times]
     else:
-        for _, sub_times in g.tf.subdivisions_awaiting.iteritems():
+        for _, sub_times in g.tf.subdvsn_awaiting.iteritems():
             is_prev_sub = False
-            for old_sub in g.rf.subdivisions[position]:
+            for old_sub in g.rf.subdvsn[position]:
                 if old_sub.name == sub_times.name:
                     is_prev_sub = True
                     break
@@ -43,27 +58,28 @@ def assign_subdivisions(position):
                 times_loc.merge_times(old_sub, sub_times, stamps_as_itrs=g.tf.save_itrs)
             else:
                 sub_times.pos_in_parent = position
-                g.rf.subdivisions[position].append(sub_times)
-    g.tf.subdivisions_awaiting.clear()
+                g.rf.subdvsn[position].append(sub_times)
+    g.tf.subdvsn_awaiting.clear()
 
 
-def par_assign_subdivisions(position):
-    new_pos = position not in g.rf.par_subdivisions and g.tf.subdivisions_awaiting
+def assign_par_subdivisions(position):
+    new_pos = position not in g.rf.par_subdvsn and g.tf.par_subdvsn_awaiting
     if new_pos:
-        for par_name, sub_list in g.tf.subdivisions_awaiting:
+        g.rf.par_subdvsn[position] = dict()
+        for par_name, sub_list in g.tf.par_subdvsn_awaiting.iteritems():
             for sub_times in sub_list:
                 sub_times.pos_in_parent = position
-        g.rf.par_subdivisions[position] = g.tf.subdivisions_awaiting
+            g.rf.par_subdvsn[position][par_name] = sub_list
     else:
-        for par_name, sub_list in g.tf.subdivisions_awaiting:
-            if par_name not in g.rf.par_subdivisions[position]:
+        for par_name, sub_list in g.tf.par_subdvsn_awaiting.iteritems():
+            if par_name not in g.rf.par_subdvsn[position]:
                 for sub_times in sub_list:
                     sub_times.pos_in_parent = position
-                g.rf.par_subdivisions[position][par_name] = sub_list
+                g.rf.par_subdvsn[position][par_name] = sub_list
             else:
                 for sub_times in sub_list:
                     is_prev_sub = False
-                    for old_sub in g.rf.subdivisions[position][par_name]:
+                    for old_sub in g.rf.par_subdvsn[position][par_name]:
                         if old_sub.name == sub_times.name:
                             is_prev_sub = True
                             break
@@ -71,5 +87,5 @@ def par_assign_subdivisions(position):
                         times_loc.merge_times(old_sub, sub_times, stamps_as_itrs=g.tf.save_itrs)
                     else:
                         sub_times.pos_in_parent = position
-                        g.rf.subdivisions[position][par_name].append(sub_times)
-    g.tf.par_subdivisions_awaiting.clear()
+                        g.rf.par_subdvsn[position][par_name].append(sub_times)
+    g.tf.par_subdvsn_awaiting.clear()

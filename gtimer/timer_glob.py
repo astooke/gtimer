@@ -15,7 +15,7 @@ import times_glob
 def start():
     if g.sf.cum:
         raise RuntimeError("Already have stamps, can't start again (must reset).")
-    if g.tf.subdivisions_awaiting or g.tf.subdivisions:
+    if g.tf.subdvsn_awaiting or g.rf.subdvsn or g.tf.par_subdvsn_awaiting or g.rf.subdvsn:
         raise RuntimeError("Already have lower level timers, can't start again (must reset).")
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped (must open new or reset).")
@@ -47,9 +47,9 @@ def stamp(name, unique=True, keep_subdivisions=True):
         else:
             g.sf.cum[name] += elapsed
     if keep_subdivisions:
-        if g.tf.subdivisions_awaiting:
+        if g.tf.subdvsn_awaiting:
             times_glob.assign_subdivisions(name)
-        if g.tf.par_subdivisions_awaiting:
+        if g.tf.par_subdvsn_awaiting:
             times_glob.assign_par_subdivisions(name)
     g.tf.last_t = timer()
     g.tf.self_cut += g.tf.last_t - t
@@ -65,9 +65,9 @@ def stop(name=None, unique=True, keep_subdivisions=True):
             raise RuntimeError("Cannot apply stopping stamp to paused timer.")
         stamp(name, unique, keep_subdivisions)
     if keep_subdivisions:
-        if g.tf.subdivisions_awaiting:
+        if g.tf.subdvsn_awaiting:
             times_glob.assign_subdivisions(g.UNASGN)
-        if g.tf.par_subdivisions_awaiting:
+        if g.tf.par_subdvsn_awaiting:
             times_glob.assign_par_subdivisions(g.UNASGN)
     for s in g.tf.rgstr_stamps:
         if s not in g.sf.cum:
@@ -113,9 +113,9 @@ def b_stamp(name=None, unique=False, keep_subdivisions=False):
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped.")
     if keep_subdivisions:
-        if g.tf.subdivisions_awaiting:
+        if g.tf.subdvsn_awaiting:
             times_glob.assign_subdivisions(g.UNASGN)
-        if g.tf.par_subdivisions_awaiting:
+        if g.tf.par_subdvsn_awaiting:
             times_glob.assign_par_subdivisions(g.UNASGN)
     g.tf.last_t = timer()
     g.tf.self_cut += g.tf.last_t - t
@@ -134,22 +134,20 @@ def _loop_stamp(name, elapsed, unique=True):
     if g.lf.itr_stamp_used[name]:
         if unique:
             raise ValueError("Loop stamp name twice in one itr: {}".format(name))
-        elif g.lf.save_itrs:
-                g.sf.itrs[name][-1] += elapsed
     else:
-        g.sf.num_itrs[name] += 1
-        if g.lf.save_itrs:
-            g.sf.itrs[name].append(elapsed)
         g.lf.itr_stamp_used[name] = True
-    g.sf.cum[name] += elapsed
+    g.lf.itr_stamps[name] += elapsed
 
 
 def _init_loop_stamp(name, do_lf=True):
     if do_lf:
         g.lf.stamps.append(name)
         g.lf.itr_stamp_used[name] = False
+        g.lf.itr_stamps[name] = 0.
+        if g.lf.save_itrs:
+            g.sf.itrs[name] = []
     g.sf.cum[name] = 0.
-    if g.lf.save_itrs:
-        g.sf.itrs[name] = []
-    g.sf.num_itrs[name] = 0
+    g.sf.itr_num[name] = 0
+    g.sf.itr_max[name] = 0.
+    g.sf.itr_min[name] = float('Inf')
     g.sf.order.append(name)

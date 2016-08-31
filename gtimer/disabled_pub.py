@@ -103,3 +103,16 @@ def compare(*args, **kwargs):
 
 def write_structure(*args, **kwargs):
     pass
+
+
+#
+# file_io
+#
+
+
+def save(*args, **kwargs):
+    pass
+
+
+def load(*args, **kwargs):
+    pass
