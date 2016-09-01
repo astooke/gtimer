@@ -9,6 +9,7 @@ import copy
 
 from gtimer.private import glob as g
 from gtimer.public import timer as timer_glob
+from gtimer.private import mgmt as mgmt_priv
 from gtimer.local.util import sanitize_rgstr_stamps
 from gtimer.local.times import Times
 from gtimer.local import merge
@@ -19,6 +20,7 @@ __all__ = ['subdivide',
            'rename_root_timer',
            'set_root_save_itrs',
            'reset_current_timer',
+           'hard_reset',
            'get_times',
            'attach_par_subdivision',
            'attach_subdivision',
@@ -126,6 +128,9 @@ def reset_current_timer():
     g.tf.reset()
     g.refresh_shortcuts()
 
+
+def hard_reset():
+    g.hard_reset()
 
 
 def get_times():

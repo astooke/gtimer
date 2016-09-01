@@ -7,6 +7,7 @@
     with only copy access, is that part of memory updated in another process?
     Should test in simple mp setup!  data_glob can hold files and mmaps and
     maybe close them automatically as module exits.
+39. report grouped by timer name.
 
               ... LOW PRIORITY...
 

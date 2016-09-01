@@ -18,8 +18,8 @@ UNASGN = 'UNASSIGNED'
 #
 # Containers for management of timer hierarchy.
 #
-timer_stack = Stack(Timer)
-loop_stack = Stack(Loop)
+timer_stack = None
+loop_stack = None
 
 
 #
@@ -81,4 +81,13 @@ def refresh_shortcuts():
 #
 # Initialization.
 #
-root_timer = create_next_timer('root')  # (user may not remove)
+
+def hard_reset():
+    global timer_stack, loop_stack, root_timer, lf
+    timer_stack = Stack(Timer)
+    loop_stack = Stack(Loop)
+    root_timer = create_next_timer('root')
+    lf = None
+
+
+hard_reset()
