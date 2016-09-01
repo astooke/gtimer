@@ -1,11 +1,12 @@
-import gtimer as gt
+# import gtimer as gt
 
 
-# from context import gtimer as gt
+from context import gtimer as gt
 import time
 
 
-@gt.wrap
+# @gt.wrap
+@gt.wrap(rgstr_stamps=['didnt see this one', 'or this one'], save_itrs=False)
 def monkey():
     print "in monkey"
     time.sleep(0.1)

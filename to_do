@@ -7,15 +7,17 @@
     with only copy access, is that part of memory updated in another process?
     Should test in simple mp setup!  data_glob can hold files and mmaps and
     maybe close them automatically as module exits.
-36. Why the hell isn't wrap working in rllab.
-37. Make wrapper with optional arguments.
-38. double-check dir(gtimer) and try to remove everything I want hidden, like g
 
               ... LOW PRIORITY...
 
 
               .. to DONE...
 
+38. double-check dir(gtimer) and try to remove everything I want hidden, like g. A: YES, did a 
+    major reorganization!
+37. Make wrapper with optional arguments.
+36. Why the hell isn't wrap working in rllab. A: I'm an idiot, had an old gtimer.pyc
+    sitting in my sandbox (had renamed gtimer.py only).
 23. re-think where we hold save_itrs just for its interaction with
     stamps_as_itrs. A: YES.  Now Times object holds save_itrs.  This is only
     checked when two times objects are merged...if rcvr.save_itrs==True, then
