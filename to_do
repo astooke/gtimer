@@ -1,7 +1,7 @@
 
 
                  ...TO DO...
-11. make my own error classes?
+11. make my own error classes?  YES do this!
 32. documentation
 35. Still not sure if the mmap will work, or if when a new one is opened,
     with only copy access, is that part of memory updated in another process?
