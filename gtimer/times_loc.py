@@ -11,12 +11,10 @@ saved Times objects.
 #
 
 
-def merge_times(rcvr, new, stamps_as_itr=True):
+def merge_times(rcvr, new):
     rcvr.total += new.total
     rcvr.stamps_sum += new.stamps_sum
     rcvr.self_agg += new.self_agg
-    if stamps_as_itr:
-        _merge_stamps_as_itr(rcvr, new)
     _merge_stamps(rcvr, new)
     _merge_subdivisions(rcvr, new)
     _merge_par_subdivisions(rcvr, new)
@@ -28,23 +26,55 @@ def merge_times(rcvr, new, stamps_as_itr=True):
 
 
 def _merge_stamps(rcvr, new):
+    save_itrs = rcvr.save_itrs
     rcvr = rcvr.stamps
     new = new.stamps
     for s in new.order:
         if s not in rcvr.order:
             rcvr.order.append(s)
+    if save_itrs:
+        _stamps_as_itr(rcvr, new)  # do this before cum
+    _merge_dict(rcvr, new, 'itrs')  # (in any case, maybe loop with save_itrs)
     _merge_dict(rcvr, new, 'cum')
-    _merge_dict(rcvr, new, 'itrs')
     _merge_dict(rcvr, new, 'itr_num')
     _merge_dict_itr(rcvr, new, 'itr_max', max)
     _merge_dict_itr(rcvr, new, 'itr_min', min)
 
 
+def _merge_dict(rcvr, new, attr):
+    rcvr_dict = getattr(rcvr, attr)
+    new_dict = getattr(new, attr)
+    for k, v in new_dict.iteritems():
+        if k in rcvr_dict:
+            rcvr_dict[k] += v
+        else:
+            rcvr_dict[k] = v
+
+
+def _merge_dict_itr(rcvr, new, attr, itr_func):
+    rcvr_dict = getattr(rcvr, attr)
+    new_dict = getattr(new, attr)
+    for k, v in new_dict.iteritems():
+        if k in rcvr_dict:
+            rcvr_dict[k] = itr_func(v, rcvr_dict[k])
+        else:
+            rcvr_dict[k] = v
+
+
+def _stamps_as_itr(rcvr, new):
+    for k, v in new.cum.iteritems():
+        if new.itr_num[k] == 1:  # (then it won't be in new.itrs)
+            if k in rcvr.itrs:
+                rcvr.itrs[k].append(v)
+            elif k in rcvr.cum:
+                rcvr.itrs[k] = [rcvr.cum[k], v]
+
+
 def _merge_subdivisions(rcvr, new):
-    for sub_pos, new_subdvsn in new.subdvsn.iteritems():
+    for sub_pos, new_sub_list in new.subdvsn.iteritems():
         if sub_pos in rcvr.subdvsn:
             add_list = []  # to avoid writing to loop iterate
-            for new_sub in new_subdvsn:
+            for new_sub in new_sub_list:
                 for rcvr_sub in rcvr.subdvsn[sub_pos]:
                     if rcvr_sub.name == new_sub.name:
                         merge_times(rcvr_sub, new_sub)
@@ -54,9 +84,9 @@ def _merge_subdivisions(rcvr, new):
                     add_list.append(new_sub)
             rcvr.subdvsn[sub_pos] += add_list
         else:
-            for sub in new_subdvsn:
+            for sub in new_sub_list:
                 sub.parent = rcvr
-            rcvr.subdvsn[sub_pos] = new_subdvsn
+            rcvr.subdvsn[sub_pos] = new_sub_list
     # Clean up references to old data as we go (not sure if helpful?).
     new.subdvsn.clear()
 
@@ -90,47 +120,3 @@ def _merge_par_subdivisions(rcvr, new):
                     new_sub.par_in_parent = True
             rcvr.par_subdvsn[sub_pos] = par_dict
     new.par_subdvsn.clear()
-
-
-def _merge_dict(rcvr, new, attr):
-    rcvr_dict = getattr(rcvr, attr)
-    new_dict = getattr(new, attr)
-    for k, v in new_dict.iteritems():
-        if k in rcvr_dict:
-            rcvr_dict[k] += v
-        else:
-            rcvr_dict[k] = v
-
-
-def _merge_dict_itr(rcvr, new, attr, itr_func):
-    rcvr_dict = getattr(rcvr, attr)
-    new_dict = getattr(new, attr)
-    for k, v in new_dict.iteritems():
-        if k in rcvr_dict:
-            rcvr_dict[k] = itr_func(v, rcvr_dict[k])
-        else:
-            rcvr_dict[k] = v
-
-
-def _merge_stamps_as_itr(rcvr, new):
-    rcvr = rcvr.stamps
-    new = new.stamps
-    for k, v in new.cum.iteritems():
-        if k not in new.itrs:
-            if k in rcvr.itrs:
-                rcvr.itrs[k].append(v)
-                rcvr.num_itrs[k] += 1
-            else:
-                if k in rcvr.cum:
-                    rcvr.itrs[k] = [rcvr.cum[k], v]
-                    rcvr.num_itrs[k] = 2
-                else:
-                    rcvr.itrs[k] = [v]
-                    rcvr.num_itrs[k] = 1
-    for k in rcvr.cum:
-        if k not in new.cum:
-            if k in rcvr.itrs:
-                rcvr.itrs[k].append(0.)
-            else:
-                rcvr.itrs[k] = [rcvr.cum[k], 0.]
-                rcvr.num_itrs[k] = 1

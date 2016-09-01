@@ -15,14 +15,12 @@ class Timer(object):
     def __init__(self,
                  name,
                  rgstr_stamps=list(),
-                 save_itrs=True,
                  dump=None,
                  named_loop=False,
                  in_loop=False,
                  **kwargs):
         self.name = str(name)
         self.rgstr_stamps = rgstr_stamps
-        self.save_itrs = bool(save_itrs)
         self.dump = dump  # refers to a Times instance
         self.named_loop = named_loop  # needed for restoring dump after deepcopy
         self.in_loop = bool(in_loop)
@@ -64,10 +62,15 @@ class Times(object):
     (Survives after timing is complete).
     """
 
-    def __init__(self, name=None, parent=None, pos_in_parent=None):
+    def __init__(self, 
+                 name=None, 
+                 parent=None, 
+                 pos_in_parent=None,
+                 save_itrs=True):
         self.name = None if name is None else str(name)
         self.parent = parent  # refer to another Times instance.
         self.pos_in_parent = pos_in_parent  # refers to a stamp name.
+        self.save_itrs = save_itrs
         self.reset()
 
     def __deepcopy__(self, memo):

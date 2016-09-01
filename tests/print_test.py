@@ -1,9 +1,16 @@
 # print test.
-import gtimer as gt
+from context import gtimer as gt
 import time
 import gtimer.data_glob as g
 import os
 
+
+@gt.wrap
+def wrap_it_up(x=0.1):
+    time.sleep(x)
+    gt.stamp('in_wrap')
+    time.sleep(x)
+    gt.stamp('in_wrap_2')
 
 filenames = ['test3a.pkl', 'test3b.pkl']
 
@@ -20,7 +27,10 @@ loop.exit()
 
 # current_times = gt.get_times()
 # print gt.report()
-
+wrap_it_up()
+wrap_it_up()
+# gt.b_stamp(keep_subdivisions=True)
+# gt.stamp('after_wrap')  # if this commented, wrap should land in UNASGN
 
 loop2 = gt.timed_for([1, 2, 3], 'loop2')
 for i in loop2:
@@ -38,6 +48,8 @@ for i in loop2:
 
 gt.stop()
 gt.rename_root_timer('par1')
+# print g.rf.subdvsn
+# print g.rf.subdvsn[g.UNASGN][0].name
 # print gt.report(include_itrs=False)
 
 # times1 = gt.get_times()
@@ -101,7 +113,7 @@ gt.stop()
 
 
 # print g.rf.par_subdvsn
-print gt.report()
+print gt.report(include_itrs=False)
 print gt.compare()
 # with open('test_delim.out', 'w') as f:
 #     f.write(gt.compare(delim_mode=True))

@@ -26,15 +26,14 @@ def dump_times():
                 g.sf.itr_min[s] = min(nonzero_itrs)
             else:
                 g.sf.itr_min[s] = 0.
-    for s, val in g.sf.cum.iteritems():
-        # (for saving stamps_as_itr)
+    for s, val in g.sf.cum.iteritems():  # (for saving stamps_as_itr)
         if s not in g.sf.itr_num:
             g.sf.itr_num[s] = 1
             g.sf.itr_max[s] = val
             g.sf.itr_min[s] = val
     if g.tf.dump is not None:
         t = timer()
-        times_loc.merge_times(g.tf.dump, g.rf, stamps_as_itr=g.tf.save_itrs)
+        times_loc.merge_times(g.tf.dump, g.rf)
         g.tf.dump.parent.self_agg += timer() - t + g.rf.self_agg
     elif g.rf.parent is not None:
         g.rf.parent.self_agg += g.rf.self_agg
@@ -55,7 +54,7 @@ def assign_subdivisions(position):
                     is_prev_sub = True
                     break
             if is_prev_sub:
-                times_loc.merge_times(old_sub, sub_times, stamps_as_itrs=g.tf.save_itrs)
+                times_loc.merge_times(old_sub, sub_times)
             else:
                 sub_times.pos_in_parent = position
                 g.rf.subdvsn[position].append(sub_times)
@@ -84,7 +83,7 @@ def assign_par_subdivisions(position):
                             is_prev_sub = True
                             break
                     if is_prev_sub:
-                        times_loc.merge_times(old_sub, sub_times, stamps_as_itrs=g.tf.save_itrs)
+                        times_loc.merge_times(old_sub, sub_times)
                     else:
                         sub_times.pos_in_parent = position
                         g.rf.par_subdvsn[position][par_name].append(sub_times)

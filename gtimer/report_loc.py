@@ -186,10 +186,10 @@ def _report_stamps(times, indent=0, par=False):
             rep += _report_par_sub_times(times.par_subdvsn[stamp], indent)
     if UNASGN in times.subdvsn:
         rep += "\n{}{}".format(FMT['IDT_SYM'] * indent, UNASGN)
-        _report_sub_times(times.subidivions[UNASGN], indent, par=par)
+        rep += _report_sub_times(times.subdvsn[UNASGN], indent, par=par)
     if UNASGN in times.par_subdvsn:
         rep += "\n{}{}".format(FMT['IDT_SYM'] * indent, UNASGN)
-        _report_par_sub_times(times.par_subdvsn[UNASGN], indent)
+        rep += _report_par_sub_times(times.par_subdvsn[UNASGN], indent)
     return rep
 
 
@@ -205,7 +205,7 @@ def _report_par_sub_times(par_subdvsn, indent):
     rep = ''
     for par_name, par_list in par_subdvsn.iteritems():
         sub_with_max_tot = max(par_list, key=lambda x: x.total)
-        rep += "\n{}{}".format(FMT['IDT_SYM'] * indent, par_name + FMT['PAR'])
+        rep += "\n{}{}".format(FMT['IDT_SYM'] * (indent + 1), par_name + FMT['PAR'])
         rep += _report_stamps(sub_with_max_tot, indent + 1, par=True)
     return rep
 
@@ -215,7 +215,7 @@ def _report_itr_stats(times, delim_mode):
     # FMT1 = FMTS_RPT['Stamps']
     rep = ''
     rep += "\n" + FMT['STMP'].format('')
-    headers = ['Mean', 'Max', 'Min', 'Num']
+    headers = ['Total', 'Mean', 'Max', 'Min', 'Num']
     for hdr in headers:
         rep += FMT['HDR'].format(hdr)
     if not delim_mode:
@@ -226,7 +226,8 @@ def _report_itr_stats(times, delim_mode):
     for s, num in stamps.itr_num.iteritems():
         if num > 1:
             rep += FMT['STMP'].format(s)
-            values = [stamps.cum[s] / stamps.itr_num[s],
+            values = [stamps.cum[s],
+                      stamps.cum[s] / stamps.itr_num[s],
                       stamps.itr_max[s],
                       stamps.itr_min[s]]
             for val in values:
@@ -365,7 +366,7 @@ class CompareTimes(object):
         self.stamps = dict()
         self.stats = dict()
         self.subdvsn = dict()
-        self.par_subdvsn = dict()
+        self.par_subdvsn = dict()  # (layout of contents not same as in Times!)
 
 
 class StampStats(object):
@@ -537,6 +538,15 @@ def _compare_stamp_stats(master, indent=0):
         if stamp in master.par_subdvsn:
             for _, master_sub in master.par_subdvsn[stamp].iteritems():
                 rep += _compare_stamp_stats(master_sub, indent + 1)
+    if UNASGN in master.subdvsn:
+        rep += "\n{}{}".format(FMT['IDT_SYM'] * indent, UNASGN)
+        for master_sub in master.subdvsn[UNASGN]:
+            rep += _compare_stamp_stats(master_sub, indent + 1)
+    if UNASGN in master.par_subdvsn:
+        if UNASGN not in master.subdvsn:
+            rep += "\n{}{}".format(FMT['IDT_SYM'] * indent, UNASGN)
+        for _, master_sub in master.par_subdvsn[UNASGN].iteritems():
+            rep += _compare_stamp_stats(master_sub, indent + 1)
     return rep
 
 

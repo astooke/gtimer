@@ -186,15 +186,13 @@ def enter_loop(name=None,
         g.tf.self_cut += timer() - t
     else:  # Entering a named loop.
         if not g.tf.in_loop or name not in g.lf.stamps:  # double check this if-logic
-            if name in g.sf.cum:
-                raise ValueError("Duplicate name given to loop: {}".format(name))
             timer_glob._init_loop_stamp(name, do_lf=False)
             if save_itrs:
                 g.sf.itrs[name] = []
         if g.tf.in_loop and name not in g.lf.stamps:
             g.lf.stamps.append(name)
         g.tf.self_cut += timer() - t
-        mgmt_priv.subdivide_named_loop(name, rgstr_stamps, save_itrs)
+        mgmt_priv.subdivide_named_loop(name, rgstr_stamps, save_itrs=save_itrs)
     g.create_next_loop(name, rgstr_stamps, save_itrs)
 
 
@@ -230,16 +228,16 @@ def loop_end(loop_end_stamp=None,
     if g.lf.first_itr:
         g.lf.first_itr = False
         for s in g.lf.rgstr_stamps:
-            if s not in g.sf.cum:
+            if s not in g.lf.stamps:
                 timer_glob._init_loop_stamp(s)
     for s, used in g.lf.itr_stamp_used.iteritems():
         if used:
             val = g.lf.itr_stamps[s]
             g.sf.cum[s] += val
-            g.sf.itr_num[s] += 1
             if g.lf.save_itrs:
                 g.sf.itrs[s].append(val)
             else:
+                g.sf.itr_num[s] += 1
                 if val > g.sf.itr_max[s]:
                     g.sf.itr_max[s] = val
                 if val < g.sf.itr_min[s]:
@@ -250,10 +248,10 @@ def loop_end(loop_end_stamp=None,
         # Reach back and stamp in the parent timer.
         elapsed = t - g.tfmin1.last_t
         g.sfmin1.cum[g.lf.name] += elapsed
-        g.sfmin1.itr_num[g.lf.name] += 1
         if g.lf.save_itrs:
             g.sfmin1.itrs[g.lf.name].append(elapsed)
         else:
+            g.sfmin1.itr_num[g.lf.name] += 1
             if elapsed > g.sfmin1.itr_max[g.lf.name]:
                 g.sfmin1.itr_max[g.lf.name] = elapsed
             if elapsed < g.sfmin1.itr_min[g.lf.name]:

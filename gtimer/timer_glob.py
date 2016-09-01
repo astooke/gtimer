@@ -121,6 +121,7 @@ def b_stamp(name=None, unique=False, keep_subdivisions=False):
     g.tf.self_cut += g.tf.last_t - t
     return t
 
+
 #
 # Private helper functions.
 #
@@ -128,9 +129,7 @@ def b_stamp(name=None, unique=False, keep_subdivisions=False):
 
 def _loop_stamp(name, elapsed, unique=True):
     if name not in g.lf.stamps:  # (first time this loop gets this name)
-        if unique and name in g.sf.cum:
-            raise ValueError("Duplicate stamp name (in loop): {}".format(name))
-        _init_loop_stamp(name)
+        _init_loop_stamp(name, unique)
     if g.lf.itr_stamp_used[name]:
         if unique:
             raise ValueError("Loop stamp name twice in one itr: {}".format(name))
@@ -139,7 +138,9 @@ def _loop_stamp(name, elapsed, unique=True):
     g.lf.itr_stamps[name] += elapsed
 
 
-def _init_loop_stamp(name, do_lf=True):
+def _init_loop_stamp(name, unique=True, do_lf=True):
+    if unique and name in g.sf.cum:
+        raise ValueError("Duplicate stamp name (in or at loop): {}".format(name))
     if do_lf:
         g.lf.stamps.append(name)
         g.lf.itr_stamp_used[name] = False

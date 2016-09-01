@@ -2,19 +2,32 @@
 
                  ...TO DO...
 11. make my own error classes?
-23. re-think where we hold save_itrs just for its interaction with
-    stamps_as_itrs
 32. documentation
 35. Still not sure if the mmap will work, or if when a new one is opened,
     with only copy access, is that part of memory updated in another process?
-    Should test in simple mp setup!
-
+    Should test in simple mp setup!  data_glob can hold files and mmaps and
+    maybe close them automatically as module exits.
+36. Why the hell isn't wrap working in rllab.
+37. Make wrapper with optional arguments.
+38. double-check dir(gtimer) and try to remove everything I want hidden, like g
 
               ... LOW PRIORITY...
 
 
               .. to DONE...
 
+23. re-think where we hold save_itrs just for its interaction with
+    stamps_as_itrs. A: YES.  Now Times object holds save_itrs.  This is only
+    checked when two times objects are merged...if rcvr.save_itrs==True, then
+    the non-itr stamps in new, if they exist in rcvr, are merged into rcvr.itrs (now a function set_root_save_itr, for when a whole run will be
+    merged).  Separately, EACH LOOP has its own save_itrs setting.  When times
+    are merged, the itrs are always merged (catches all loops with save_itrs).
+    The save_itrs setting is separate for each times, and for each loop, no
+    propagating up or down of setting, EXCEPT perhaps for a named_loop, which 
+    sets the loop and the inner timer to the same save_itrs setting.
+39. Maybe stamps as itrs is simpler it I just always track itr_num, just in
+    printing itrs, only do the ones that have itr_num > 1.  A: Yup had already
+    done this in dump times, just forgot to finish the job by remove merge_stamps_as_itrs...and remove all references to that.
 34. test tab-delim reporting
 31. TEST REPORTING. TEST TEST COMPARISON REPORTING
 33. report itr stats.

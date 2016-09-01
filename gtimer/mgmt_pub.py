@@ -21,10 +21,10 @@ def subdivide(name, rgstr_stamps=list(), save_itrs=True):
         # Previous dump exists.
         # (e.g. multiple calls of same wrapped function between stamps)
         dump = g.tf.subdvsn_awaiting[name]
-        g.create_next_timer(name, rgstr_stamps, save_itrs, dump)
+        g.create_next_timer(name, rgstr_stamps, dump, save_itrs=save_itrs)
     else:
         # No previous, write times directly to awaiting sub in parent times.
-        g.create_next_timer(name, rgstr_stamps, save_itrs, parent=g.rf)
+        g.create_next_timer(name, rgstr_stamps, save_itrs=save_itrs, parent=g.rf)
         g.tfmin1.subdvsn_awaiting[name] = g.rf
     g.tf.user_subdivision = True
 
@@ -39,7 +39,22 @@ def end_subdivision():
     g.remove_last_timer()
 
 
-def wrap(func, subdivision=True, rgstr_stamps=list(), save_itrs=True):
+def opt_arg_wrap(inner_wrap):
+    def wrapped_dec(*args):
+        if len(args) == 1 and callable(args[0]):
+            return inner_wrap(args[0])
+        else:
+            def wrap_with_arg(func):
+                return inner_wrap(func, *args)
+
+            return wrap_with_arg
+
+    return wrapped_dec
+
+## FINISH THIS.
+
+
+def wrap_err(func, subdivision=True, rgstr_stamps=list(), save_itrs=True):
     subdivision = bool(subdivision)
     if subdivision:
         name = func.__name__
@@ -47,7 +62,7 @@ def wrap(func, subdivision=True, rgstr_stamps=list(), save_itrs=True):
         save_itrs = bool(save_itrs)
 
         def timer_wrapped(*args, **kwargs):
-            mgmt_priv.subdivide(name, rgstr_stamps, save_itrs)
+            mgmt_priv.subdivide(name, rgstr_stamps, save_itrs=save_itrs)
             result = func(*args, **kwargs)
             mgmt_priv.end_subdivision()
             return result
@@ -58,9 +73,26 @@ def wrap(func, subdivision=True, rgstr_stamps=list(), save_itrs=True):
     return timer_wrapped
 
 
+def wrap(func):
+    name = func.__name__
+
+    def timer_wrapped(*args, **kwargs):
+        mgmt_priv.subdivide(name)
+        result = func(*args, **kwargs)
+        mgmt_priv.end_subdivision()
+        return result
+
+    return timer_wrapped
+
+
 def rename_root_timer(name):
     g.root_timer.name = str(name)
     g.root_timer.times.name = str(name)
+
+
+def set_root_save_itrs(setting=True):
+    g.root_timer.times.save_itrs = bool(setting)
+
 
 
 def reset_current_timer():
@@ -86,7 +118,7 @@ def get_times():
         return times
 
 
-def attach_par_subdivision(par_name, par_times, stamps_as_itrs=True):
+def attach_par_subdivision(par_name, par_times):
     """ Manual assignment of a group of (stopped) times objects as a parallel
     subdivision of a running timer.
     """
@@ -115,7 +147,7 @@ def attach_par_subdivision(par_name, par_times, stamps_as_itrs=True):
                     is_prev_sub = True
                     break
             if is_prev_sub:
-                times_loc.merge_times(old_sub, new_sub, stamps_as_itrs)
+                times_loc.merge_times(old_sub, new_sub)
             else:
                 new_sub_copy = copy.deepcopy(new_sub)
                 new_sub_copy.parent = g.rf
@@ -124,7 +156,7 @@ def attach_par_subdivision(par_name, par_times, stamps_as_itrs=True):
     g.tf.self_cut += timer() - t
 
 
-def attach_subdivision(times, stamps_as_itrs=True):
+def attach_subdivision(times):
     """ Manual assignment of a (stopped) times object as a subdivision of
     running timer.
     """
@@ -139,7 +171,5 @@ def attach_subdivision(times, stamps_as_itrs=True):
         times_copy.parent = g.rf
         g.tf.subdvsn_awaiting[name] = times_copy
     else:
-        times_loc.merge_times(g.tf.subdvsn_awaiting[name],
-                              times,
-                              stamps_as_itrs)
+        times_loc.merge_times(g.tf.subdvsn_awaiting[name], times)
     g.tf.self_cut += timer() - t
