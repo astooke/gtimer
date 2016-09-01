@@ -2,6 +2,7 @@
 
 from gtimer.private import mgmt
 from gtimer.private.util import get_current_timer
+from gtimer.local.util import sanitize_rgstr_stamps
 
 
 class TimedLoopBase(object):
@@ -16,7 +17,7 @@ class TimedLoopBase(object):
                  keep_prev_subdivisions=True,
                  keep_end_subdivisions=True):
         self._name = None if name is None else str(name)
-        self._rgstr_stamps = mgmt_priv.sanitize_rgstr_stamps(rgstr_stamps)
+        self._rgstr_stamps = sanitize_rgstr_stamps(rgstr_stamps)
         self._save_itrs = bool(save_itrs)
         self._loop_end_stamp = None if loop_end_stamp is None else str(loop_end_stamp)
         self._end_stamp_unique = end_stamp_unique,

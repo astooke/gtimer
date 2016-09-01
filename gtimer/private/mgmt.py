@@ -5,6 +5,7 @@ elsewhere in package.
 """
 
 import copy
+from timeit import default_timer as timer
 
 from gtimer.private import glob as g
 from gtimer.private import times as times_glob

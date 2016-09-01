@@ -89,10 +89,10 @@ def _opt_arg_wrap(inner_wrap):
 
 
 @_opt_arg_wrap
-def wrap(func, subdivision=True, rgstr_stamps=list(), save_itrs=True):
+def wrap(func, subdivision=True, name=None, rgstr_stamps=list(), save_itrs=True):
     subdivision = bool(subdivision)
     if subdivision:
-        name = func.__name__
+        name = func.__name__ if name is None else str(name)
         rgstr_stamps = sanitize_rgstr_stamps(rgstr_stamps)
         save_itrs = bool(save_itrs)
 
@@ -125,6 +125,7 @@ def reset_current_timer():
         raise RuntimeError("Cannot reset a timer while it is in timed loop.")
     g.tf.reset()
     g.refresh_shortcuts()
+
 
 
 def get_times():
