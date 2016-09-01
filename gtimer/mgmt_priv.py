@@ -20,19 +20,19 @@ def subdivide_named_loop(name, rgstr_stamps, save_itrs):
         dump = g.rf.subdvsn[name][0]
         g.create_next_timer(name,
                             rgstr_stamps,
-                            save_itrs,
                             named_loop=True,
-                            in_loop=True)
+                            in_loop=True,
+                            save_itrs=save_itrs)
         g.tf.dump = dump
     else:
         # No previous, write directly to assigned subdivision in parent times.
         g.create_next_timer(name,
                             rgstr_stamps,
-                            save_itrs,
                             named_loop=True,
                             in_loop=True,
                             parent=g.rf,
-                            pos_in_parent=name)
+                            pos_in_parent=name,
+                            save_itrs=save_itrs)
         g.rfmin1.subdvsn[name] = [g.rf]
 
 

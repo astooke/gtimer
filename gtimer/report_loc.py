@@ -489,7 +489,7 @@ def _compare_stats(times_list, master, delim_mode):
         rep += FMT['FLT'].format(val)
     rep += FMT['INT'].format(tot.num)
     rep += "\n\n"
-    rep += _compare_stamp_stats(master)
+    rep += _compare_stamps(master, stats_mode=True)
     rep += "\n"
     return rep
 
@@ -497,9 +497,6 @@ def _compare_stats(times_list, master, delim_mode):
 def _compare_list(times_list, master, delim_mode):
     FMT = FMTS_CMP['List']
     rep = "\n"
-    # rep += FMT['NM_BLNK']
-    # for i in range(len(times_list)):
-    #     rep += FMT['HDR'].format(str(i))
     if not delim_mode:
         rep += FMT['NM_BLNK']
     for times in times_list:
@@ -520,41 +517,18 @@ def _compare_list(times_list, master, delim_mode):
     return rep
 
 
-def _compare_stamp_stats(master, indent=0):
-    FMT = FMTS_CMP['Stats']
+def _compare_stamps(master, indent=0, stats_mode=False):
+    if stats_mode:
+        FMT = FMTS_CMP['Stats']
+        loop_dict = master.stats
+    else:
+        FMT = FMTS_CMP['List']
+        loop_dict = master.stamps
     rep = ''
-    for stamp, s in master.stats.iteritems():
+    for stamp, values in loop_dict.iteritems():
         rep += FMT['NAME'].format(FMT['IDT_SYM'] * indent, stamp + FMT['APND'])
-        float_values = [s.max, s.min, s.avg, s.std]
-        for val in float_values:
-            if val:
-                rep += FMT['FLT'].format(val)
-            else:
-                rep += FMT['BLNK']
-        rep += FMT['INT'].format(s.num)
-        if stamp in master.subdvsn:
-            for master_sub in master.subdvsn[stamp]:
-                rep += _compare_stamp_stats(master_sub, indent + 1)
-        if stamp in master.par_subdvsn:
-            for _, master_sub in master.par_subdvsn[stamp].iteritems():
-                rep += _compare_stamp_stats(master_sub, indent + 1)
-    if UNASGN in master.subdvsn:
-        rep += "\n{}{}".format(FMT['IDT_SYM'] * indent, UNASGN)
-        for master_sub in master.subdvsn[UNASGN]:
-            rep += _compare_stamp_stats(master_sub, indent + 1)
-    if UNASGN in master.par_subdvsn:
-        if UNASGN not in master.subdvsn:
-            rep += "\n{}{}".format(FMT['IDT_SYM'] * indent, UNASGN)
-        for _, master_sub in master.par_subdvsn[UNASGN].iteritems():
-            rep += _compare_stamp_stats(master_sub, indent + 1)
-    return rep
-
-
-def _compare_stamps(master, indent=0):
-    FMT = FMTS_CMP['List']
-    rep = ''
-    for stamp, values in master.stamps.iteritems():
-        rep += FMT['NAME'].format(FMT['IDT_SYM'] * indent, stamp + FMT['APND'])
+        if stats_mode:
+            values = [values.max, values.min, values.avg, values.std]
         for val in values:
             if val:
                 rep += FMT['FLT'].format(val)
@@ -562,10 +536,19 @@ def _compare_stamps(master, indent=0):
                 rep += FMT['BLNK']
         if stamp in master.subdvsn:
             for master_sub in master.subdvsn[stamp]:
-                rep += _compare_stamps(master_sub, indent + 1)
+                rep += _compare_stamps(master_sub, indent + 1, stats_mode)
         if stamp in master.par_subdvsn:
             for _, master_sub in master.par_subdvsn[stamp]:
-                rep += _compare_stamps(master_sub, indent + 1)
+                rep += _compare_stamps(master_sub, indent + 1, stats_mode)
+    if UNASGN in master.subdvsn:
+        rep += "\n{}{}".format(FMT['IDT_SYM'] * indent, UNASGN)
+        for master_sub in master.subdvsn[UNASGN]:
+            rep += _compare_stamps(master_sub, indent + 1, stats_mode)
+    if UNASGN in master.par_subdvsn:
+        if UNASGN not in master.subdvsn:
+            rep += "\n{}{}".format(FMT['IDT_SYM'] * indent, UNASGN)
+        for _, master_sub in master.par_subdvsn[UNASGN]:
+            rep += _compare_stamps(master_sub, indent + 1, stats_mode)
     return rep
 
 #
