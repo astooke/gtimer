@@ -1,10 +1,10 @@
-import gtimer as gt
+from context import gtimer as gt
 import time
 import test2_b
 # import data_glob as g
 
 
-@gt.wrap
+# @gt.wrap
 def funky():
     print "inside funky"
     time.sleep(0.1)
@@ -14,6 +14,11 @@ def funky():
 time.sleep(0.1)
 gt.stamp('first')
 # for i in [1, 2, 3]:
+
+dumdum = test2_b.Dummy()
+
+dumdum.print_it()
+gt.stamp('after dumdum')
 loop = gt.timed_for([1, 2, 3], 'loop1')
 
 
@@ -50,7 +55,7 @@ for i in loop:
     #     gt.stamp('l2_second')
 time.sleep(0.1)
 gt.stamp('second')
-gt.open_next_timer('yeah')
+# gt.open_next_timer('yeah')
 time.sleep(0.1)
 gt.stamp('yeah_1')
 test2_b.monkey()
@@ -58,11 +63,11 @@ time.sleep(0.1)
 gt.stamp('yeah_2')
 time.sleep(0.1)
 gt.stamp('yeah_1', unique=False)
-gt.close_last_timer()
+# gt.close_last_timer()
 funky()
 gt.stop()
 # print g.rf.children
-gt.print_report()
+print gt.report()
 # print g.tif.times.stamps
 # print g.tif.times.stamps_itrs
 
