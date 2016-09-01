@@ -1,4 +1,7 @@
-from context import gtimer as gt
+from __future__ import absolute_import
+import gtimer as gt
+
+# from context import gtimer as gt
 import time
 import test2_b
 # import data_glob as g
