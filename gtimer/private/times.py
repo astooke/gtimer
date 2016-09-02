@@ -42,7 +42,7 @@ def dump_times():
 
 def assign_subdivisions(position, keep_subdivisions=True):
     if keep_subdivisions:
-        if g.tf.subdsvn_awaiting:
+        if g.tf.subdvsn_awaiting:
             _assign_subdvsn(position)
         if g.tf.par_subdvsn_awaiting:
             _assign_par_subdvsn(position)

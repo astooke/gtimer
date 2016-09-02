@@ -53,7 +53,7 @@ def wrap(func, subdivision=True, name=None, rgstr_stamps=list(), save_itrs=True)
         save_itrs = bool(save_itrs)
 
         def timer_wrapped(*args, **kwargs):
-            mgmt_priv.subdivide(name, rgstr_stamps, save_itrs=save_itrs)
+            mgmt_priv.auto_subdivide(name, rgstr_stamps, save_itrs=save_itrs)
             result = func(*args, **kwargs)
             mgmt_priv.end_auto_subdivision()
             return result

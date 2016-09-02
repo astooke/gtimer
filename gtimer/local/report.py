@@ -24,9 +24,9 @@ def report(times,
     rep += _report_stamps(times)
     if include_itrs or include_stats:
         rep_itr = _report_itrs(times, delim_mode, include_itrs, include_stats)
-    if rep_itr:   
-        rep += FMT['ITR']
-        rep += rep_itr
+        if rep_itr:
+            rep += FMT['ITR']
+            rep += rep_itr
     rep += FMT['END'].format(times.name)
     return rep
 
