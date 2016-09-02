@@ -27,7 +27,11 @@ def save_pkl(filename=None, times=None):
         else:
             times = g.root_timer.times
     else:
-        if not isinstance(times, Times):
+        if isinstance(times, (list, tuple)):
+            for t in times:
+                if not isinstance(t, Times):
+                    raise TypeError("Expected Times instance list/tuple for times input.")
+        elif not isinstance(times, Times):
             raise TypeError("Expected Times instance for times input.")
     if filename is not None:
         with open(str(filename), 'wb') as f:

@@ -286,11 +286,11 @@ def _report_itrs(times, delim_mode=False, include_itrs=True):
         rep += "\n"
     for _, subdvsn in times.subdvsn.iteritems():
         for sub_times in subdvsn:
-            rep += _report_itrs(sub_times, delim_mode)
+            rep += _report_itrs(sub_times, delim_mode, include_itrs)
     for _, par_subdvsn in times.par_subdvsn.iteritems():
         for _, par_list in par_subdvsn.iteritems():
             sub_with_max_tot = max(par_list, key=lambda x: x.total)
-            rep += _report_itrs(sub_with_max_tot, delim_mode)
+            rep += _report_itrs(sub_with_max_tot, delim_mode, include_itrs)
     return rep
 
 
@@ -528,12 +528,15 @@ def _compare_stamps(master, indent=0, stats_mode=False):
     for stamp, values in loop_dict.iteritems():
         rep += FMT['NAME'].format(FMT['IDT_SYM'] * indent, stamp + FMT['APND'])
         if stats_mode:
+            num = values.num
             values = [values.max, values.min, values.avg, values.std]
         for val in values:
             if val:
                 rep += FMT['FLT'].format(val)
             else:
                 rep += FMT['BLNK']
+        if stats_mode:
+            rep += FMT['INT'].format(num)
         if stamp in master.subdvsn:
             for master_sub in master.subdvsn[stamp]:
                 rep += _compare_stamps(master_sub, indent + 1, stats_mode)
