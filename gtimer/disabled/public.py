@@ -7,12 +7,6 @@ place in code but timing turned off.
 from gtimer.disabled.private import UntimedLoop as _UntimedLoop
 from gtimer.disabled.private import UntimedFor as _UntimedFor
 
-# __all__ = ['start', 'stamp', 'stop', 'pause', 'resume', 'b_stamp', 'timed_loop',
-#            'timed_for', 'subdivide', 'end_subdivision', 'wrap', 'rename_root_timer',
-#            ]
-
-
-
 
 #
 # timer
@@ -96,6 +90,10 @@ def set_root_save_itrs(*args, **kwargs):
 
 
 def reset_current_timer():
+    pass
+
+
+def hard_reset():
     pass
 
 

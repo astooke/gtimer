@@ -11,13 +11,13 @@ from gtimer.private import glob as g
 from gtimer.private import mgmt
 from gtimer.local.times import Times
 
-__all__  = ['save_pkl', 
-            'load_pkl', 
-            'open_mmap', 
-            'close_mmap', 
-            'save_mmap',
-            'load_mmap',
-            ]
+__all__ = ['save_pkl',
+           'load_pkl',
+           'open_mmap',
+           'close_mmap',
+           'save_mmap',
+           'load_mmap',
+           ]
 
 
 def save_pkl(filename=None, times=None):
@@ -37,7 +37,8 @@ def save_pkl(filename=None, times=None):
 
 
 def load_pkl(filenames):
-    filenames = list(filenames)
+    if not isinstance(filenames, (list, tuple)):
+        filenames = [filenames]
     times = []
     for name in filenames:
         name = str(name)
@@ -51,7 +52,8 @@ def load_pkl(filenames):
 #
 
 def open_mmap(filenames, init_size=10000, write=True):
-    filenames = list(filenames)
+    if not isinstance(filenames, (list, tuple)):
+        filenames = [filenames]
     files = list()
     mmaps = list()
     for name in filenames:
@@ -63,7 +65,7 @@ def open_mmap(filenames, init_size=10000, write=True):
             access = mmap.ACCESS_COPY
         else:
             access = mmap.ACCESS_READ
-        f = open(filename, 'r+')
+        f = open(name, 'r+')
         mm = mmap.mmap(f.fileno(), 0, access=access)
         files.append(f)
         mmaps.append(mm)
