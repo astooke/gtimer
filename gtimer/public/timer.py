@@ -32,15 +32,17 @@ def start():
     return t
 
 
-def stamp(name, unique=True, keep_subdivisions=True):
+def stamp(name, unique=True, keep_subdivisions=True, print_elapsed=False):
     t = timer()
     elapsed = t - g.tf.last_t
-    name = str(name)
-    unique = bool(unique)
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped.")
     if g.tf.paused:
         raise RuntimeError("Timer paused.")
+    name = str(name)
+    unique = bool(unique)
+    if print_elapsed:
+        print("\n{}: {}".format(name, elapsed))
     if g.tf.in_loop:
         _loop_stamp(name, elapsed, unique)
     else:
@@ -105,7 +107,7 @@ def resume():
     return t
 
 
-def b_stamp(name=None, unique=False, keep_subdivisions=False):
+def b_stamp(name=None, unique=None, keep_subdivisions=False, print_elapsed=None):
     """Blank stamp (same signature as stamp())."""
     t = timer()
     if g.tf.stopped:
