@@ -51,11 +51,7 @@ def stamp(name, unique=True, keep_subdivisions=True):
             raise ValueError("Duplicate stamp name: {}".format(name))
         else:
             g.sf.cum[name] += elapsed
-    if keep_subdivisions:
-        if g.tf.subdvsn_awaiting:
-            times_glob.assign_subdivisions(name)
-        if g.tf.par_subdvsn_awaiting:
-            times_glob.assign_par_subdivisions(name)
+    times_glob.assign_subdivisions(name, keep_subdivisions)
     g.tf.last_t = timer()
     g.tf.self_cut += g.tf.last_t - t
     return t
@@ -69,11 +65,8 @@ def stop(name=None, unique=True, keep_subdivisions=True):
         if g.tf.paused:
             raise RuntimeError("Cannot apply stopping stamp to paused timer.")
         stamp(name, unique, keep_subdivisions)
-    if keep_subdivisions:
-        if g.tf.subdvsn_awaiting:
-            times_glob.assign_subdivisions(g.UNASGN)
-        if g.tf.par_subdvsn_awaiting:
-            times_glob.assign_par_subdivisions(g.UNASGN)
+    else:
+        times_glob.assign_subdivisions(g.UNASGN, keep_subdivisions)
     for s in g.tf.rgstr_stamps:
         if s not in g.sf.cum:
             g.sf.cum[s] = 0.
@@ -117,11 +110,7 @@ def b_stamp(name=None, unique=False, keep_subdivisions=False):
     t = timer()
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped.")
-    if keep_subdivisions:
-        if g.tf.subdvsn_awaiting:
-            times_glob.assign_subdivisions(g.UNASGN)
-        if g.tf.par_subdvsn_awaiting:
-            times_glob.assign_par_subdivisions(g.UNASGN)
+    times_glob.assign_subdivisions(g.UNASGN, keep_subdivisions)
     g.tf.last_t = timer()
     g.tf.self_cut += g.tf.last_t - t
     return t

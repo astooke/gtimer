@@ -40,7 +40,22 @@ def dump_times():
         g.rf.parent.self_agg += g.rf.self_agg
 
 
-def assign_subdivisions(position):
+def assign_subdivisions(position, keep_subdivisions=True):
+    if keep_subdivisions:
+        if g.tf.subdsvn_awaiting:
+            _assign_subdvsn(position)
+        if g.tf.par_subdvsn_awaiting:
+            _assign_par_subdvsn(position)
+    g.tf.subdvsn_awaiting.clear()
+    g.tf.par_subdvsn_awaiting.clear()
+
+
+#
+# Private helper functions.
+#
+
+
+def _assign_subdvsn(position):
     new_pos = position not in g.rf.subdvsn and g.tf.subdvsn_awaiting
     if new_pos:
         g.rf.subdvsn[position] = list()
@@ -59,10 +74,9 @@ def assign_subdivisions(position):
             else:
                 sub_times.pos_in_parent = position
                 g.rf.subdvsn[position].append(sub_times)
-    g.tf.subdvsn_awaiting.clear()
 
 
-def assign_par_subdivisions(position):
+def _assign_par_subdvsn(position):
     new_pos = position not in g.rf.par_subdvsn and g.tf.par_subdvsn_awaiting
     if new_pos:
         g.rf.par_subdvsn[position] = dict()
@@ -88,4 +102,3 @@ def assign_par_subdivisions(position):
                     else:
                         sub_times.pos_in_parent = position
                         g.rf.par_subdvsn[position][par_name].append(sub_times)
-    g.tf.par_subdvsn_awaiting.clear()

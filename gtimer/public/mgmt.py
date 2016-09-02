@@ -10,9 +10,11 @@ import copy
 from gtimer.private import glob as g
 from gtimer.public import timer as timer_glob
 from gtimer.private import mgmt as mgmt_priv
-from gtimer.local.util import sanitize_rgstr_stamps
+from gtimer.local.util import sanitize_rgstr_stamps, opt_arg_wrap
 from gtimer.local.times import Times
 from gtimer.local import merge
+from gtimer.private import collapse
+
 
 __all__ = ['subdivide',
            'end_subdivision',
@@ -28,18 +30,7 @@ __all__ = ['subdivide',
 
 
 def subdivide(name, rgstr_stamps=list(), save_itrs=True):
-    name = str(name)
-    rgstr_stamps = sanitize_rgstr_stamps(rgstr_stamps)
-    save_itrs = bool(save_itrs)
-    if name in g.tf.subdvsn_awaiting:
-        # Previous dump exists.
-        # (e.g. multiple calls of same wrapped function between stamps)
-        dump = g.tf.subdvsn_awaiting[name]
-        g.create_next_timer(name, rgstr_stamps, dump, save_itrs=save_itrs)
-    else:
-        # No previous, write times directly to awaiting sub in parent times.
-        g.create_next_timer(name, rgstr_stamps, save_itrs=save_itrs, parent=g.rf)
-        g.tfmin1.subdvsn_awaiting[name] = g.rf
+    mgmt_priv.auto_subdivide(name, rgstr_stamps, save_itrs)
     g.tf.user_subdivision = True
 
 
@@ -53,44 +44,7 @@ def end_subdivision():
     g.remove_last_timer()
 
 
-#
-# A few private helper functions.
-#
-
-
-def _auto_subdivide(*args, **kwargs):
-    """ To be called internally instead of public version."""
-    subdivide(*args, **kwargs)
-    g.tf.user_subdivision = False  # Protect from user closure.
-
-
-def _end_auto_subdivision():
-    """ To be called internally instead of public version."""
-    if g.tf.user_subdivision:
-        raise RuntimeError("gtimer attempted to end user-generated subdivision.")
-    assert not g.tf.in_loop, "gtimer attempted to close subidivision while in timed loop."
-    if not g.tf.stopped:
-        timer_glob.stop()
-    g.remove_last_timer()
-
-
-def _opt_arg_wrap(inner_wrap):
-    def wrapped_dec(*args, **kwargs):
-        if len(args) == 1 and callable(args[0]):
-            return inner_wrap(args[0])
-        else:
-            def wrap_with_arg(func):
-                return inner_wrap(func, *args, **kwargs)
-            return wrap_with_arg
-    return wrapped_dec
-
-
-#
-# Back to public.
-#
-
-
-@_opt_arg_wrap
+@opt_arg_wrap
 def wrap(func, subdivision=True, name=None, rgstr_stamps=list(), save_itrs=True):
     subdivision = bool(subdivision)
     if subdivision:
@@ -99,9 +53,9 @@ def wrap(func, subdivision=True, name=None, rgstr_stamps=list(), save_itrs=True)
         save_itrs = bool(save_itrs)
 
         def timer_wrapped(*args, **kwargs):
-            _auto_subdivide(name, rgstr_stamps, save_itrs=save_itrs)
+            mgmt_priv.subdivide(name, rgstr_stamps, save_itrs=save_itrs)
             result = func(*args, **kwargs)
-            _end_auto_subdivision()
+            mgmt_priv.end_auto_subdivision()
             return result
     else:
         def timer_wrapped(*args, **kwargs):
@@ -141,7 +95,7 @@ def get_times():
         return copy.deepcopy(g.root_timer.times)
     else:
         t = timer()
-        times = mgmt_priv.collapse_times()
+        times = collapse.collapse_times()
         g.root_timer.self_cut += timer() - t
         return times
 

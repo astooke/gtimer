@@ -10,7 +10,11 @@ from gtimer.private.glob import UNASGN
 #
 
 
-def report(times, include_itrs=True, delim_mode=False, format_options=dict()):
+def report(times,
+           include_itrs=True,
+           include_stats=True,
+           delim_mode=False,
+           format_options=dict()):
     delim_mode = bool(delim_mode)
     _define_report_formats(delim_mode, format_options)
     FMT = FMTS_RPT['Report']
@@ -18,10 +22,11 @@ def report(times, include_itrs=True, delim_mode=False, format_options=dict()):
     rep += _report_header(times)
     rep += FMT['INT']
     rep += _report_stamps(times)
-    rep_itrs = _report_itrs(times, delim_mode, include_itrs)
-    if rep_itrs:
+    if include_itrs or include_stats:
+        rep_itr = _report_itrs(times, delim_mode, include_itrs, include_stats)
+    if rep_itr:   
         rep += FMT['ITR']
-        rep += rep_itrs
+        rep += rep_itr
     rep += FMT['END'].format(times.name)
     return rep
 
@@ -32,7 +37,6 @@ def compare(times_list,
             include_stats=True,
             delim_mode=False,
             format_options=dict()):
-
     delim_mode = bool(delim_mode)
     name = 'Unnamed' if name is None else str(name)
     # Assemble data.
@@ -237,7 +241,7 @@ def _report_itr_stats(times, delim_mode):
     return rep
 
 
-def _report_itrs(times, delim_mode=False, include_itrs=True):
+def _report_itrs(times, delim_mode=False, include_itrs=True, include_stats=True):
     FMT = FMTS_RPT['Itrs']
     rep = ''
     stamps = times.stamps
@@ -252,7 +256,8 @@ def _report_itrs(times, delim_mode=False, include_itrs=True):
         if times.parent is not None:
             lin_str = _fmt_lineage(_get_lineage(times))
             rep += FMT['HDR'].format('Lineage' + FMT['APND'], lin_str)
-        rep += _report_itr_stats(times, delim_mode)
+        if include_stats:
+            rep += _report_itr_stats(times, delim_mode)
     if include_itrs and stamps.itrs:
         rep += "\n\nIter."
         itrs_order = []

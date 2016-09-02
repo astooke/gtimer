@@ -4,14 +4,27 @@ Timer management functions to hide from user but expose
 elsewhere in package.
 """
 
-import copy
 from timeit import default_timer as timer
 
 from gtimer.private import glob as g
 from gtimer.private import times as times_glob
 from gtimer.public import timer as timer_glob
 from gtimer.local.util import sanitize_rgstr_stamps
-from gtimer.private.util import copy_timer_stack
+
+
+def auto_subdivide(name, rgstr_stamps=list(), save_itrs=True):
+    name = str(name)
+    rgstr_stamps = sanitize_rgstr_stamps(rgstr_stamps)
+    save_itrs = bool(save_itrs)
+    if name in g.tf.subdvsn_awaiting:
+        # Previous dump exists.
+        # (e.g. multiple calls of same wrapped function between stamps)
+        dump = g.tf.subdvsn_awaiting[name]
+        g.create_next_timer(name, rgstr_stamps, dump, save_itrs=save_itrs)
+    else:
+        # No previous, write times directly to awaiting sub in parent times.
+        g.create_next_timer(name, rgstr_stamps, save_itrs=save_itrs, parent=g.rf)
+        g.tfmin1.subdvsn_awaiting[name] = g.rf
 
 
 def subdivide_named_loop(name, rgstr_stamps, save_itrs):
@@ -39,6 +52,16 @@ def subdivide_named_loop(name, rgstr_stamps, save_itrs):
         g.rfmin1.subdvsn[name] = [g.rf]
 
 
+def end_auto_subdivision():
+    """ To be called internally instead of public version."""
+    if g.tf.user_subdivision:
+        raise RuntimeError("gtimer attempted to end user-generated subdivision.")
+    assert not g.tf.in_loop, "gtimer attempted to close subidivision while in timed loop."
+    if not g.tf.stopped:
+        timer_glob.stop()
+    g.remove_last_timer()
+
+
 #
 # Loops.
 #
@@ -46,18 +69,14 @@ def subdivide_named_loop(name, rgstr_stamps, save_itrs):
 def enter_loop(name=None,
                rgstr_stamps=list(),
                save_itrs=True,
-               keep_subidivisions=True):
+               keep_subdivisions=True):
     t = timer()
     g.tf.last_t = t
     if g.tf.stopped:
         raise RuntimeError("Timer already stopped.")
     if g.tf.paused:
         raise RuntimeError("Timer paused.")
-    if keep_subidivisions:
-        if g.tf.subdvsn_awaiting:
-            times_glob.assign_subdivisions(g.UNASGN)
-        if g.tf.par_subdvsn_awaiting:
-            times_glob.par_assign_subdivisions(g.UNASGN)
+    times_glob.assign_subdivisions(g.UNASGN, keep_subdivisions)
     if name is None:  # Entering anonynous loop.
         if g.tf.in_loop:
             raise RuntimeError("Entering anonymous inner timed loop (not supported).")
@@ -97,11 +116,8 @@ def loop_end(loop_end_stamp=None,
     else:
         t = timer()
         g.tf.last_t = t
-        if keep_subdivisions:
-            if g.tf.subdvsn_awaiting:
-                times_glob.assign_subdivisions(g.UNASGN)
-            if g.tf.par_subdvsn_awaiting:
-                times_glob.par_assign_subdivisions(g.UNASGN)
+        times_glob.assign_subdivisions(g.UNASGN, keep_subdivisions)
+
     # Prevserve the ordering of stamp names as much as possible, wait until
     # after first pass to initialize any unused registered stamps.
     if g.lf.first_itr:
@@ -146,40 +162,5 @@ def exit_loop():
         raise RuntimeError("Timer paused at loop exit (uncertain behavior--not allowed).")
     g.tf.in_loop = False
     if g.lf.name is not None:
-        mgmt_priv.end_subdivision()
+        end_auto_subdivision()
     g.remove_last_loop()
-
-
-#
-# Capturing the current times data during timing.
-#
-
-
-def collapse_subdivision():
-    if g.tf.in_loop:
-        loop_end(end_stamp_unique=False)
-        exit_loop()
-    else:
-        timer_glob.stop()
-        g.remove_last_timer()
-
-
-def collapse_times():
-    """Make copies of everything, assign to global shortcuts so functions work
-    on them, extract the times, then restore the running stacks.
-    """
-    orig_ts = g.timer_stack
-    orig_ls = g.loop_stack
-    copy_ts = copy_timer_stack()
-    copy_ls = copy.deepcopy(g.loop_stack)
-    g.timer_stack = copy_ts
-    g.loop_stack = copy_ls
-    g.refresh_shortcuts()
-    while len(g.timer_stack) > 1:
-        collapse_subdivision()
-    timer_glob.stop()
-    collapsed_times = g.rf
-    g.timer_stack = orig_ts  # (loops throw error if not same object!)
-    g.loop_stack = orig_ls
-    g.refresh_shortcuts()
-    return collapsed_times

@@ -20,6 +20,7 @@ __all__ = ['report', 'compare', 'write_structure']
 
 def report(times=None,
            include_itrs=True,
+           include_stats=True,
            delim_mode=False,
            format_options=dict()):
     if times is None:

@@ -6,7 +6,7 @@ place in code but timing turned off.
 
 from gtimer.disabled.private import UntimedLoop as _UntimedLoop
 from gtimer.disabled.private import UntimedFor as _UntimedFor
-
+from gtimer.local.util import opt_arg_wrap as _opt_arg_wrap
 
 #
 # timer
@@ -61,17 +61,6 @@ def subdivide(*args, **kwargs):
 
 def end_subdivision(*args, **kwargs):
     pass
-
-
-def _opt_arg_wrap(inner_wrap):
-    def wrapped_dec(*args, **kwargs):
-        if len(args) == 1 and callable(args[0]):
-            return inner_wrap(args[0])
-        else:
-            def wrap_with_arg(func):
-                return inner_wrap(func, *args, **kwargs)
-            return wrap_with_arg
-    return wrapped_dec
 
 
 @_opt_arg_wrap

@@ -35,8 +35,8 @@ class TimedLoopBase(object):
         if not self._exited:
             if self._started:
                 mgmt.loop_end(self._loop_end_stamp,
-                            self._end_stamp_unique,
-                            self._keep_end_subdivisions)
+                              self._end_stamp_unique,
+                              self._keep_end_subdivisions)
             mgmt.exit_loop()
         self._exited = True
 
@@ -56,9 +56,9 @@ class TimedLoop(TimedLoopBase):
             raise RuntimeError("Loop already exited (need a new loop object).")
         if self._first:
             mgmt.enter_loop(self._name,
-                          self._rgstr_stamps,
-                          self._save_itrs,
-                          self._keep_prev_subdivisions)
+                            self._rgstr_stamps,
+                            self._save_itrs,
+                            self._keep_prev_subdivisions)
             self._first = False
             self._started = True
             self._timer = get_current_timer()
@@ -66,8 +66,8 @@ class TimedLoop(TimedLoopBase):
             if get_current_timer() is not self._timer:
                 raise RuntimeError("Loop timer mismatch, likely improper subdivision during loop, spans iterations.")
             mgmt.loop_end(self._loop_end_stamp,
-                        self._end_stamp_unique,
-                        self._keep_end_subdivisions)
+                          self._end_stamp_unique,
+                          self._keep_end_subdivisions)
         mgmt.loop_start()
 
 
@@ -81,9 +81,9 @@ class TimedFor(TimedLoopBase):
         if self._exited:
             raise RuntimeError("For-loop object already used, need a different one.")
         mgmt.enter_loop(self._name,
-                      self._rgstr_stamps,
-                      self._save_itrs,
-                      self._keep_prev_subdivisions)
+                        self._rgstr_stamps,
+                        self._save_itrs,
+                        self._keep_prev_subdivisions)
         self._timer = get_current_timer()
         for i in self._iterable:
             mgmt.loop_start()
@@ -94,8 +94,8 @@ class TimedFor(TimedLoopBase):
             if get_current_timer() is not self._timer:
                 raise RuntimeError("Loop timer mismatch, likely improper subdivision during loop, spans iterations.")
             mgmt.loop_end(self._loop_end_stamp,
-                        self._end_stamp_unique,
-                        self._keep_end_subdivisions)
+                          self._end_stamp_unique,
+                          self._keep_end_subdivisions)
             self._started = False
         mgmt.exit_loop()
         self._exited = True

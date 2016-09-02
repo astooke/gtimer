@@ -8,7 +8,7 @@ import mmap
 import os
 
 from gtimer.private import glob as g
-from gtimer.private import mgmt
+from gtimer.private import collapse
 from gtimer.local.times import Times
 
 __all__ = ['save_pkl',
@@ -23,7 +23,7 @@ __all__ = ['save_pkl',
 def save_pkl(filename=None, times=None):
     if times is None:
         if not g.root_timer.stopped:
-            times = mgmt.collapse_times()
+            times = collapse.collapse_times()
         else:
             times = g.root_timer.times
     else:
