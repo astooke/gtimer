@@ -6,6 +6,7 @@ Classes which comprise the timed loops.
 from gtimer.private import loop
 from gtimer.private.focus import get_current_timer
 from gtimer.local.util import sanitize_rgstr_stamps
+from gtimer.local.exceptions import LoopError
 
 
 class TimedLoopBase(object):
@@ -33,7 +34,7 @@ class TimedLoopBase(object):
 
     def __enter__(self):
         if self._exited:
-            return RuntimeError("Loop used as context manager previously exited (make a new one).")
+            raise LoopError("Loop used as context manager previously exited (make a new one).")
         return self
 
     def __exit__(self, *args):
@@ -59,7 +60,7 @@ class TimedLoop(TimedLoopBase):
 
     def next(self):
         if self._exited:
-            raise RuntimeError("Loop already exited (need a new loop object).")
+            raise LoopError("Attempted loop iteration on already exited loop (need a new loop object).")
         if self._first:
             loop.enter_loop(self._name,
                             self._rgstr_stamps,
@@ -70,7 +71,7 @@ class TimedLoop(TimedLoopBase):
             self._timer = get_current_timer()
         else:
             if get_current_timer() is not self._timer:
-                raise RuntimeError("Loop timer mismatch, likely improper subdivision during loop, spans iterations.")
+                raise LoopError("Loop timer mismatch, likely improper subdivision during loop (cannot span iterations).")
             loop.loop_end(self._loop_end_stamp,
                           self._end_stamp_unique,
                           self._keep_end_subdivisions,
@@ -86,7 +87,7 @@ class TimedFor(TimedLoopBase):
 
     def __iter__(self):
         if self._exited:
-            raise RuntimeError("For-loop object already used, need a different one.")
+            raise LoopError("For-loop object already exited (need a new loop object).")
         loop.enter_loop(self._name,
                         self._rgstr_stamps,
                         self._save_itrs,
@@ -97,9 +98,9 @@ class TimedFor(TimedLoopBase):
             self._started = True
             yield i
             if self._exited:
-                raise RuntimeError("Loop mechanism exited improperly while in loop.")
+                raise LoopError("Loop mechanism exited improperly (must break).")
             if get_current_timer() is not self._timer:
-                raise RuntimeError("Loop timer mismatch, likely improper subdivision during loop, spans iterations.")
+                raise LoopError("Loop timer mismatch, likely improper subdivision during loop (cannot span iterations).")
             loop.loop_end(self._loop_end_stamp,
                           self._end_stamp_unique,
                           self._keep_end_subdivisions)

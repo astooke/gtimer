@@ -20,7 +20,7 @@ def report(times,
     if format_options is None:
         format_options = dict()
     elif not isinstance(format_options, dict):
-        raise TypeError("Expected dictionary for format_options input.")
+        raise TypeError("Expected dictionary for param 'format_options'.")
     _define_report_formats(delim_mode, format_options)
     FMT = FMTS_RPT['Report']
     rep = FMT['BEGIN'].format(times.name)
@@ -47,7 +47,7 @@ def compare(times_list,
     if format_options is None:
         format_options = dict()
     elif not isinstance(format_options, dict):
-        raise TypeError("Expected dictionary for format_options input.")
+        raise TypeError("Expected dictionary for param 'format_options''.")
 
     # Assemble data.
     master_stamps = CompareTimes()

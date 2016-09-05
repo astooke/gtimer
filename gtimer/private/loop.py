@@ -8,6 +8,7 @@ from timeit import default_timer as timer
 from gtimer.private import focus as f
 from gtimer.private import times as times_priv
 from gtimer.public import timer as timer_pub
+from gtimer.local.exceptions import StoppedError, PausedError, LoopError
 
 
 def enter_loop(name=None,
@@ -17,13 +18,13 @@ def enter_loop(name=None,
     t = timer()
     f.t.last_t = t
     if f.t.stopped:
-        raise RuntimeError("Timer already stopped.")
+        raise StoppedError("Timer already stopped when entering loop.")
     if f.t.paused:
-        raise RuntimeError("Timer paused.")
+        raise PausedError("Timer paused when entering loop.")
     times_priv.assign_subdivisions(f.UNASGN, keep_subdivisions)
     if name is None:  # Entering anonynous loop.
         if f.t.in_loop:
-            raise RuntimeError("Entering anonymous inner timed loop (not supported).")
+            raise LoopError("Entering anonymous inner timed loop (not supported).")
         f.t.in_loop = True
         f.t.self_cut += timer() - t
     else:  # Entering a named loop.
@@ -40,7 +41,9 @@ def enter_loop(name=None,
 
 def loop_start():
     if f.t.stopped:
-        raise RuntimeError("Timer already stopped.")
+        raise StoppedError("Timer already stopped at start of loop iteration.")
+    if f.t.paused:
+        raise PausedError("Timer paused at start of loop iteration.")
     for k in f.lp.itr_stamps:
         # (these are initialized together with same key)
         f.lp.itr_stamps[k] = 0.
@@ -52,7 +55,9 @@ def loop_end(loop_end_stamp=None,
              keep_subdivisions=True,
              quick_print=False):
     if f.t.stopped:
-        raise RuntimeError("Timer already stopped.")
+        raise StoppedError("Timer already stopped at end of loop iteration.")
+    if f.t.paused:
+        raise PausedError("Timer paused at end of loop iteration.")
     if loop_end_stamp is not None:
         timer_pub.stamp(loop_end_stamp,
                         un=end_stamp_unique,
@@ -105,9 +110,9 @@ def loop_end(loop_end_stamp=None,
 
 def exit_loop():
     if f.t.stopped:
-        raise RuntimeError("Timer already stopped.")
+        raise StoppedError("Timer already stopped when exiting loop.")
     if f.t.paused:
-        raise RuntimeError("Timer paused at loop exit (uncertain behavior--not allowed).")
+        raise PausedError("Timer paused when exiting loop.")
     f.t.in_loop = False
     if f.lp.name is not None:
         _end_subdivision_named_loop()
@@ -145,8 +150,7 @@ def _subdivide_named_loop(name, rgstr_stamps, save_itrs):
 
 def _end_subdivision_named_loop():
     if f.t.is_user_subdvsn:
-        raise RuntimeError("gtimer attempted to end user-generated subdivision.")
-    assert not f.t.in_loop, "gtimer attempted to close subidivision while in timed loop."
+        raise LoopError("gtimer attempted to end user-generated subdivision at end of named loop.")
     if not f.t.stopped:
         timer_pub.stop()
     f.remove_last_timer()

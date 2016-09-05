@@ -22,7 +22,7 @@ def report(times=None,
            include_itrs=True,
            include_stats=True,
            delim_mode=False,
-           format_options=dict()):
+           format_options=None):
     if times is None:
         if f.root.stopped:
             return report_loc.report(f.root.times,
@@ -39,7 +39,7 @@ def report(times=None,
             return rep
     else:
         if not isinstance(times, Times):
-            raise TypeError('Need a Times object to report (default is root).')
+            raise TypeError("Expected Times instance for param 'times' (default is root).")
         return report_loc.report(times, include_itrs, delim_mode)
 
 
@@ -48,7 +48,7 @@ def compare(times_list=None,
             include_list=True,
             include_stats=True,
             delim_mode=False,
-            format_options=dict()):
+            format_options=None):
     if times_list is None:
         rep = ''
         for _, par_dict in f.root.times.par_subdvsn.iteritems():
@@ -61,9 +61,9 @@ def compare(times_list=None,
                                           format_options)
     else:
         if not isinstance(times_list, (list, tuple)):
-            raise TypeError("Expected a list or tuple of times for times_list.")
+            raise TypeError("Expected a list/tuple of times instances for param 'times_list'.")
         if not all([isinstance(times, Times) for times in times_list]):
-            raise TypeError("At least one member of times_list is not a Times object.")
+            raise TypeError("At least one member of param 'times_list' is not a Times object.")
         rep = report_loc.compare(times_list,
                                  name,
                                  include_list,
@@ -78,5 +78,5 @@ def write_structure(times=None):
         return report_loc.write_structure(f.root.times)
     else:
         if not isinstance(times, Times):
-            raise TypeError('Need a Times object to write structure (default is root).')
+            raise TypeError("Expected Times instance for param 'times' (default is root).")
         return report_loc.write_structure(times)

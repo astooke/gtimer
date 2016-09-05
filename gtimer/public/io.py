@@ -20,7 +20,7 @@ __all__ = ['get_times', 'attach_subdivision', 'attach_par_subdivision',
 
 
 def get_times():
-    """ Returns an immediate deep copy of current Times; no risk of
+    """Returns an immediate deep copy of current Times; no risk of
     interference with active objects.
     """
     if f.root.stopped:
@@ -33,15 +33,15 @@ def get_times():
 
 
 def attach_par_subdivision(par_name, par_times):
-    """ Manual assignment of a group of (stopped) times objects as a parallel
+    """Manual assignment of a group of (stopped) times objects as a parallel
     subdivision of a running timer.
     """
     t = timer()
     if not isinstance(par_times, (list, tuple)):
-        raise TypeError("Expected list or tuple for par_times arg.")
+        raise TypeError("Expected list or tuple for param 'par_times'.")
     for times in par_times:
         if not isinstance(times, Times):
-            raise TypeError("Expected each element of par_times to be Times object.")
+            raise TypeError("Expected each element of param 'par_times' to be Times object.")
         assert times.total > 0., "An attached par subdivision has total time 0, appears empty."
     par_name = str(par_name)
     sub_with_max_tot = max(par_times, key=lambda x: x.total)
@@ -76,7 +76,7 @@ def attach_subdivision(times):
     """
     t = timer()
     if not isinstance(times, Times):
-        raise TypeError("Expected Times object input.")
+        raise TypeError("Expected Times object for param 'times'.")
     assert times.total > 0., "Attached subdivision has total time 0, appears empty."
     name = times.name
     f.r.self_agg += times.self_agg
@@ -99,9 +99,9 @@ def save_pkl(filename=None, times=None):
         if isinstance(times, (list, tuple)):
             for t in times:
                 if not isinstance(t, Times):
-                    raise TypeError("Expected Times instance list/tuple for times input.")
+                    raise TypeError("Expected single Times instance or list/tuple of Times instances for param 'times'.")
         elif not isinstance(times, Times):
-            raise TypeError("Expected Times instance for times input.")
+            raise TypeError("Expected single Times instance or list/tuple of Times instances for param 'times'.")
     if filename is not None:
         with open(str(filename), 'wb') as file:
             pickle.dump(times, file)
