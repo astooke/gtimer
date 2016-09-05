@@ -6,7 +6,7 @@ place in code but timing turned off.
 
 from gtimer.disabled.private import UntimedLoop as _UntimedLoop
 from gtimer.disabled.private import UntimedFor as _UntimedFor
-from gtimer.local.util import opt_arg_wrap as _opt_arg_wrap
+from gtimer.util import opt_arg_wrap as _opt_arg_wrap
 
 #
 # timer
@@ -65,9 +65,9 @@ def end_subdivision(*args, **kwargs):
 
 @_opt_arg_wrap
 def wrap(func, *args, **kwargs):
-    def untimer_wrapped(*arg, **kwarg):
+    def dis_gtimer_wrapped(*arg, **kwarg):
         return func(*arg, **kwarg)
-    return untimer_wrapped
+    return dis_gtimer_wrapped
 
 
 def rename_root_timer(*args, **kwargs):

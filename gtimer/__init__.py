@@ -1,4 +1,8 @@
 
+"""
+gtimer overall docstring - TBD
+"""
+
 import os
 
 DISABLED = False
@@ -9,10 +13,9 @@ del os
 
 if not DISABLED:
     from gtimer.public.timer import *
-    from gtimer.public.mgmt import *
-    from gtimer.public.loop import *
+    from gtimer.public.timedloop import *
+    from gtimer.public.io import *
     from gtimer.public.report import *
-    from gtimer.public.file_io import *
     del public, private, local
 else:
     from gtimer.disabled.public import *

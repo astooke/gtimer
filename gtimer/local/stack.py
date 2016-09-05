@@ -1,6 +1,7 @@
 
 """
-Data structures and functions for use in data_glob, but not elsewhere.
+Data structure for the timer and loop hierarchies (elements held within an
+instantiated structure will be individual timers or loops, see .private.focus).
 """
 
 
@@ -23,8 +24,8 @@ class Stack(object):
             return self.stack_return()
 
     def stack_return(self):
-        current = None if len(self.stack) < 1 else self.stack[-1]
-        previous = None if len(self.stack) < 2 else self.stack[-2]
+        current = None if len(self) < 1 else self[-1]
+        previous = None if len(self) < 2 else self[-2]
         return current, previous
 
     def __len__(self):

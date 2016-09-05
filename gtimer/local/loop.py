@@ -1,9 +1,14 @@
 
+"""
+Class which holds loop data regarding stamp names and accumulated times
+on a per-iteration basis.
+"""
+
 
 class Loop(object):
     """Hold info for name checking and assigning."""
 
-    def __init__(self, name=None, rgstr_stamps=list(), save_itrs=True):
+    def __init__(self, name=None, rgstr_stamps=None, save_itrs=True):
         self.name = None if name is None else str(name)
         self.stamps = list()
         self.rgstr_stamps = rgstr_stamps

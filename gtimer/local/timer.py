@@ -1,6 +1,7 @@
 
 """
-Timer data and state containers (hidden from user).
+Class which holds temporary timing data which does not need to persis after
+timing is complete.
 """
 
 from timeit import default_timer as timer
@@ -16,18 +17,18 @@ class Timer(object):
 
     def __init__(self,
                  name,
-                 rgstr_stamps=list(),
+                 rgstr_stamps=None,
                  dump=None,
-                 named_loop=False,
+                 is_named_loop=False,
                  in_loop=False,
                  **kwargs):
         self.name = str(name)
-        self.rgstr_stamps = rgstr_stamps
-        self.dump = dump  # refers to a Times instance
-        self.named_loop = named_loop  # needed for restoring dump after deepcopy
+        self.rgstr_stamps = rgstr_stamps if rgstr_stamps is not None else list()
+        self.dump = dump  # refers to a Times instance, not a Timer instance
+        self.is_named_loop = is_named_loop  # needed for restoring dump after deepcopy
         self.in_loop = bool(in_loop)
         self.times = None
-        self.user_subdivision = False
+        self.is_user_subdvsn = False
         self.reset()
         self.times = Times(name, **kwargs)
 

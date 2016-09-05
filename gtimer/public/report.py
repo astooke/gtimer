@@ -1,14 +1,14 @@
 
 """
-Reporting functions acting on global variables (all are exposed to user).
+Reporting functions provided to user.
 """
 
 from timeit import default_timer as timer
 
-from gtimer.private import glob as g
+from gtimer.private import focus as f
 from gtimer.local import report as report_loc
 from gtimer.local.times import Times
-from gtimer.private import mgmt
+from gtimer.private import collapse
 
 __all__ = ['report', 'compare', 'write_structure']
 
@@ -24,18 +24,18 @@ def report(times=None,
            delim_mode=False,
            format_options=dict()):
     if times is None:
-        if g.root_timer.stopped:
-            return report_loc.report(g.root_timer.times,
+        if f.root.stopped:
+            return report_loc.report(f.root.times,
                                      include_itrs,
                                      delim_mode,
                                      format_options)
         else:
             t = timer()
-            rep = report_loc.report(mgmt.collapse_times(),
+            rep = report_loc.report(collapse.collapse_times(),
                                     include_itrs,
                                     delim_mode,
                                     format_options)
-            g.root_timer.self_cut += timer() - t
+            f.root.self_cut += timer() - t
             return rep
     else:
         if not isinstance(times, Times):
@@ -51,7 +51,7 @@ def compare(times_list=None,
             format_options=dict()):
     if times_list is None:
         rep = ''
-        for _, par_dict in g.root_timer.times.par_subdvsn.iteritems():
+        for _, par_dict in f.root.times.par_subdvsn.iteritems():
             for par_name, par_list in par_dict.iteritems():
                 rep += report_loc.compare(par_list,
                                           par_name,
@@ -75,7 +75,7 @@ def compare(times_list=None,
 
 def write_structure(times=None):
     if times is None:
-        return report_loc.write_structure(g.root_timer.times)
+        return report_loc.write_structure(f.root.times)
     else:
         if not isinstance(times, Times):
             raise TypeError('Need a Times object to write structure (default is root).')

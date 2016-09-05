@@ -1,9 +1,10 @@
 
 """
-Reporting functions acting on locally provided variables (hidden from user).
+Internal reporting functions acting on locally provided variables (user is
+provided global versions which call to these, see .public.report).
 """
 
-from gtimer.private.glob import UNASGN
+from gtimer.private.const import UNASGN
 
 #
 # Functions to expose elsewhere in package.
@@ -14,8 +15,12 @@ def report(times,
            include_itrs=True,
            include_stats=True,
            delim_mode=False,
-           format_options=dict()):
+           format_options=None):
     delim_mode = bool(delim_mode)
+    if format_options is None:
+        format_options = dict()
+    elif not isinstance(format_options, dict):
+        raise TypeError("Expected dictionary for format_options input.")
     _define_report_formats(delim_mode, format_options)
     FMT = FMTS_RPT['Report']
     rep = FMT['BEGIN'].format(times.name)
@@ -36,9 +41,14 @@ def compare(times_list,
             include_list=True,
             include_stats=True,
             delim_mode=False,
-            format_options=dict()):
+            format_options=None):
     delim_mode = bool(delim_mode)
     name = 'Unnamed' if name is None else str(name)
+    if format_options is None:
+        format_options = dict()
+    elif not isinstance(format_options, dict):
+        raise TypeError("Expected dictionary for format_options input.")
+
     # Assemble data.
     master_stamps = CompareTimes()
     _build_master(master_stamps, times_list)
@@ -78,10 +88,10 @@ FMTS_CMP = None
 #  Reporting.
 #
 
-def _define_report_formats(delim_mode, fmt_opts):
+def _define_report_formats(delim_mode, fmt_opts=None):
     global FMTS_RPT
-    if not isinstance(fmt_opts, dict):
-        raise TypeError("Expected dictionary for format_options input.")
+    if fmt_opts is None:
+        fmt_opts = dict()
     if delim_mode:
         DELIM = '\t' if 'delimiter' not in fmt_opts else str(fmt_opts['delimiter'])
 
@@ -412,10 +422,10 @@ def _compute_stats(values):
 #
 
 
-def _define_compare_formats(delim_mode, fmt_opts):
+def _define_compare_formats(delim_mode, fmt_opts=None):
     global FMTS_CMP
-    if not isinstance(fmt_opts, dict):
-        raise TypeError("Expected dictionary for format_options input.")
+    if fmt_opts is None:
+        fmt_opts = dict()
     if delim_mode:
         DELIM = '\t' if 'delimiter' not in fmt_opts else str(fmt_opts['delimiter'])
         IDT_SYM = '+' if 'indent_symbol' not in fmt_opts else str(fmt_opts['indent_symbol'])

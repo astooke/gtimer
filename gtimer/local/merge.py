@@ -1,9 +1,7 @@
 
 """
-Times() functions acting on locally provided variables.
-(So far, hidden from user)...might expose some
-to support multiprocessing, if user has to manipulate
-saved Times objects.
+Merging data from a new times instances into the receiving instance
+(e.g. when they correspond to the same code segments.).
 """
 
 #

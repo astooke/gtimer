@@ -1,4 +1,10 @@
 
+"""
+Class which holds permanent timing data which needs to persist after timing is
+complete.
+"""
+
+
 import copy
 
 
@@ -7,9 +13,9 @@ class Times(object):
     (Survives after timing is complete).
     """
 
-    def __init__(self, 
-                 name=None, 
-                 parent=None, 
+    def __init__(self,
+                 name=None,
+                 parent=None,
                  pos_in_parent=None,
                  save_itrs=True):
         self.name = None if name is None else str(name)
