@@ -8,6 +8,7 @@ from timeit import default_timer as timer
 from gtimer.private import focus as f
 from gtimer.private import times as times_priv
 from gtimer.public import timer as timer_pub
+from gtimer.private.const import UNASGN
 from gtimer.local.exceptions import StoppedError, PausedError, LoopError
 
 
@@ -21,7 +22,7 @@ def enter_loop(name=None,
         raise StoppedError("Timer already stopped when entering loop.")
     if f.t.paused:
         raise PausedError("Timer paused when entering loop.")
-    times_priv.assign_subdivisions(f.UNASGN, keep_subdivisions)
+    times_priv.assign_subdivisions(UNASGN, keep_subdivisions)
     if name is None:  # Entering anonynous loop.
         if f.t.in_loop:
             raise LoopError("Entering anonymous inner timed loop (not supported).")
@@ -34,7 +35,7 @@ def enter_loop(name=None,
                 f.s.itrs[name] = []
         if f.t.in_loop and name not in f.lp.stamps:
             f.lp.stamps.append(name)
-        f.t.selp_cut += timer() - t
+        f.t.self_cut += timer() - t
         _subdivide_named_loop(name, rgstr_stamps, save_itrs=save_itrs)
     f.create_next_loop(name, rgstr_stamps, save_itrs)
 
@@ -67,7 +68,7 @@ def loop_end(loop_end_stamp=None,
     else:
         t = timer()
         f.t.last_t = t
-        times_priv.assign_subdivisions(f.UNASGN, keep_subdivisions)
+        times_priv.assign_subdivisions(UNASGN, keep_subdivisions)
 
     # Prevserve the ordering of stamp names as much as possible, wait until
     # after first pass to initialize any unused registered stamps.
@@ -105,7 +106,7 @@ def loop_end(loop_end_stamp=None,
         f.tm1.last_t = t
         if quick_print:
             print("({}) {}: {}".format(f.tm1.name, f.lp.name, elapsed))
-    f.t.selp_cut += timer() - t
+    f.t.self_cut += timer() - t
 
 
 def exit_loop():

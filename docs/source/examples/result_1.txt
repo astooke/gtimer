@@ -1,0 +1,14 @@
+>> ---Begin Timer Report (root)---
+>> Timer Name:          root
+>> Total Time (s):      0.4033
+>> Stamps Sum:          0.4029
+>> Self Time (Agg.):    8.583e-05
+>>
+>>
+>> Intervals
+>> ---------
+>> first .............. 0.1024
+>> second ............. 0.2003
+>> third .............. 0.1002
+>>
+>> ---End Timer Report (root)---

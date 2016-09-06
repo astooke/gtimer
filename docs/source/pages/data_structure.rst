@@ -1,0 +1,9 @@
+
+Timing Data Structure
+=====================
+
+The timing data is held in a tree structure which is constructed dynamically as the program executes and timing data is collected.  Each instance holds a dictionary of subdivisions and a dicitionary of parallel subdivisions.  The subdivisions dictionary has stamp names as the keys (i.e. where does the subdivision belong) and lists of other times instances as the values.  Similarly, the parallel subdivisions dictionary has stamp names as the keys, but sub-dictionaries as the values.  Each of these sub-dictionaries has names of parallel groups as keys and lists of times instances (use distinct names!) as values.  In the other direction, each times instance holds a reference to its parent (``None`` for the root times only), and also its stamp position in the parent and, if it has one, the name of the parallel group it belongs to.
+
+Within each times instance, overall timing data is held directly.  The self time is always an aggregate including self times accumulated during activities of all subdivisions, and has already been subtracted from the total.  Detailed timing data resides in a separate data structure that is a ``Stamps`` object instance.  Within that, each element is a dictionary wherein the keys are stamp names.  
+
+If ``get_times()`` is called on a running timer, some of the relationships to subdivisions might not yet be determined (i.e. some subdivisions exist but the next level timer has not stamped).  In this case those subdivisions appear under the 'UNASSIGNED' position, separate from any earlier iterations of the same subdivisions.  The same can happen when there are subdivisions awaiting assignment either 1) at the moment a timed loop is entered or 2) when a timer is manually stopped.

@@ -51,7 +51,7 @@ def attach_par_subdivision(par_name, par_times):
         for times in par_times:
             times_copy = copy.deepcopy(times)
             times_copy.parent = f.r
-            times_copy.par_in_parent = True
+            times_copy.par_in_parent = par_name
             f.t.par_subdvsn_awaiting[par_name].append(times_copy)
     else:
         for new_sub in par_times:
@@ -65,7 +65,7 @@ def attach_par_subdivision(par_name, par_times):
             else:
                 new_sub_copy = copy.deepcopy(new_sub)
                 new_sub_copy.parent = f.r
-                new_sub_copy.par_in_parent = True
+                new_sub_copy.par_in_parent = par_name
                 f.t.par_subdvsn_awaiting[par_name].append(new_sub_copy)
     f.t.self_cut += timer() - t
 

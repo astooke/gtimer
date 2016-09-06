@@ -27,12 +27,14 @@ def report(times=None,
         if f.root.stopped:
             return report_loc.report(f.root.times,
                                      include_itrs,
+                                     include_stats,
                                      delim_mode,
                                      format_options)
         else:
             t = timer()
             rep = report_loc.report(collapse.collapse_times(),
                                     include_itrs,
+                                    include_stats,
                                     delim_mode,
                                     format_options)
             f.root.self_cut += timer() - t

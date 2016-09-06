@@ -1,0 +1,30 @@
+.. gtimer documentation master file, created by
+   sphinx-quickstart on Mon Sep  5 00:30:30 2016.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+A global Python timer: gtimer
+==================================
+
+The purpose of gtimer is to record timing information during Python program execution with these desires in mind:
+- User-defined level of detail (ranges from line-by-line to function-wide)
+- Simple to use interface
+
+
+
+
+
+Contents:
+
+.. toctree::
+   :maxdepth: 2
+
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+

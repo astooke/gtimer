@@ -20,3 +20,5 @@ if not DISABLED:
 else:
     from gtimer.disabled.public import *
     del disabled
+
+# del util

@@ -1,19 +1,20 @@
 
 
                  ...TO DO...
-11. make my own error classes?  YES do this!
 32. documentation
 35. Still not sure if the mmap will work, or if when a new one is opened,
     with only copy access, is that part of memory updated in another process?
     Should test in simple mp setup!  data_glob can hold files and mmaps and
     maybe close them automatically as module exits.
 39. report grouped by timer name.
+40. Still collect self-time even when subdivisions awaiting are not kep.
 
               ... LOW PRIORITY...
 
 
               .. to DONE...
 
+11. make my own error classes?  YES do this!
 38. double-check dir(gtimer) and try to remove everything I want hidden, like g. A: YES, did a 
     major reorganization!
 37. Make wrapper with optional arguments.

@@ -47,7 +47,7 @@ class Times(object):
         self.self_agg = 0.
         self.subdvsn = dict()
         self.par_subdvsn = dict()
-        self.par_in_parent = False
+        self.par_in_parent = None
 
 
 class Stamps(object):

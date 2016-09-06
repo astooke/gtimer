@@ -53,9 +53,8 @@ class TimedLoopBase(object):
 
 class TimedLoop(TimedLoopBase):
 
-    def __init__(self, current_timer, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         self._first = True
-        self._current_timer = current_timer
         super(TimedLoop, self).__init__(*args, **kwargs)
 
     def next(self):

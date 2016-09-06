@@ -107,6 +107,7 @@ def _define_report_formats(delim_mode, fmt_opts=None):
             'APND': ''
         }
         STMP = {
+            'TMR': "\n{}{}",  # accepts: indent, label
             'STMP': "\n{{}}{{}}{}{{}}".format(DELIM),  # accepts: indent, label, value
             'IDT_SYM': '+' if 'indent_symbol' not in fmt_opts else str(fmt_opts['indent_symbol']),
             'SPC': '',
@@ -150,6 +151,7 @@ def _define_report_formats(delim_mode, fmt_opts=None):
             'APND': ':'
         }
         STMP = {
+            'TMR': "\n{}({})",  # accepts: indent, label
             'STMP': "\n{{}}{{:.<{}}} {{:.4g}}".format(STMP_NAME),  # acepts: indent, label, value
             'IDT_SYM': '  ' if 'indent_symbol' not in fmt_opts else str(fmt_opts['indent_symbol']),
             'SPC': ' ',
@@ -190,6 +192,8 @@ def _report_stamps(times, indent=0, par=False):
     FMT = FMTS_RPT['Stamps']
     stamps = times.stamps
     rep = ''
+    if indent > 0:
+        rep += FMT['TMR'].format(FMT['IDT_SYM'] * indent, times.name)
     for stamp in stamps.order:
         stamp_str = stamp + FMT['SPC']
         stamp_str += FMT['PAR'] if par else ''

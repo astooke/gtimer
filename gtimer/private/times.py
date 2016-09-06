@@ -32,15 +32,26 @@ def dump_times():
             f.s.itr_num[s] = 1
             f.s.itr_max[s] = val
             f.s.itr_min[s] = val
+    merge_t = 0.
     if f.t.dump is not None:
         t = timer()
         merge.merge_times(f.t.dump, f.r)
-        f.t.dump.parent.self_agg += timer() - t + f.r.self_agg
-    elif f.r.parent is not None:
-        f.r.parent.self_agg += f.r.self_agg
+        merge_t += timer() - t
+        f.t.dump.self_agg += merge_t
+    # Must aggregate up self time only in the case of named loop, because it
+    # dumps directly to an already assigned subdivision, whereas normally self
+    # time aggregates during subdivision assignment.
+    if f.t.is_named_loop:
+        f.r.parent.self_agg += f.r.self_agg + merge_t
 
 
 def assign_subdivisions(position, keep_subdivisions=True):
+    # Aggregate the self-time whether subdvisions kept or not.
+    for _, times in f.t.subdvsn_awaiting.iteritems():
+        f.r.self_agg += times.self_agg
+    for _, sub_list in f.t.par_subdvsn_awaiting.iteritems():
+        sub_with_max_tot = max(sub_list, filter=lambda x: x.total)
+        f.r.self_agg += sub_with_max_tot.self_agg
     if keep_subdivisions:
         if f.t.subdvsn_awaiting:
             _assign_subdvsn(position)

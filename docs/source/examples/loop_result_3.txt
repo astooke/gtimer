@@ -1,0 +1,35 @@
+>> ---Begin Timer Report (root)---
+>> Timer Name:          root
+>> Total Time (s):      0.5035
+>> Stamps Sum:          0.5028
+>> Self Time (Agg.):    0.0001996
+>>  
+>>  
+>> Intervals
+>> ---------
+>> first .............. 0.1016
+>> named_loop ......... 0.3008
+>>   (named_loop)
+>>   loop ............... 0.3007
+>> second ............. 0.1003
+>>  
+>>  
+>> Loop Iterations
+>> ---------------
+>>  
+>> Timer:       root
+>>
+>>                Total    Mean     Max     Min     Num
+>>               ------  ------  ------  ------  ------
+>> named_loop      0.30    0.10    0.10    0.10       3
+>>  
+>>  
+>> Timer:       named_loop
+>> Lineage:     root (named_loop)
+>>
+>>                Total    Mean     Max     Min     Num
+>>               ------  ------  ------  ------  ------
+>> loop            0.30    0.10    0.10    0.10       3
+>>  
+>>  
+>> ---End Timer Report (root)---

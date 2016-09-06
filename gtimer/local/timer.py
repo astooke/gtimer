@@ -25,7 +25,7 @@ class Timer(object):
         self.name = str(name)
         self.rgstr_stamps = rgstr_stamps if rgstr_stamps is not None else list()
         self.dump = dump  # refers to a Times instance, not a Timer instance
-        self.is_named_loop = is_named_loop  # needed for restoring dump after deepcopy
+        self.is_named_loop = is_named_loop  # needed for copying dump and self agg
         self.in_loop = bool(in_loop)
         self.times = None
         self.is_user_subdvsn = False
