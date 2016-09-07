@@ -37,6 +37,10 @@ def b_stamp(*args, **kwargs):
     pass
 
 
+def reset():
+    pass
+
+
 #
 # loop
 #
@@ -70,19 +74,35 @@ def wrap(func, *args, **kwargs):
     return dis_gtimer_wrapped
 
 
-def rename_root_timer(*args, **kwargs):
+def rename_root(*args, **kwargs):
     pass
 
 
-def set_root_save_itrs(*args, **kwargs):
+def set_save_itrs_root(*args, **kwargs):
     pass
 
 
-def reset_current_timer():
+def rgstr_stamps_root(*args, **kwargs):
     pass
 
 
-def hard_reset():
+def reset_root():
+    pass
+
+
+def set_def_save_itrs(*args, **kwargs):
+    pass
+
+
+def set_def_keep_subdivisions(*args, **kwargs):
+    pass
+
+
+def set_def_quick_print(*args, **kwargs):
+    pass
+
+
+def set_def_unique(*args, **kwargs):
     pass
 
 
