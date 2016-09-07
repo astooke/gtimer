@@ -1,4 +1,4 @@
 # gtimer
 Python Global Timer Package
 
-Please see documentation at: [http://gtimer.readthedocs.io/]
+Please see documentation at: http://gtimer.readthedocs.io/
