@@ -1,30 +1,17 @@
-
 import gtimer as gt
 import time
 
-@gt.wrap
-def func_1():
-    time.sleep(0.1)
-    gt.stamp('f_first')
-    time.sleep(0.2)
-    gt.stamp('f_second')
-
-def func_2():
-    time.sleep(0.1)
-    gt.stamp('f_inline')
-
 time.sleep(0.1)
-func_1()
+gt.start()
+time.sleep(0.1)
 gt.stamp('first')
-func_2()
+gt.pause()
+time.sleep(0.1)
+gt.resume()
 gt.stamp('second')
 time.sleep(0.1)
-gt.stamp('third')
-gt.subdivide('sub')
+gt.b_stamp('third')
 time.sleep(0.1)
-gt.stamp('sub_1')
-time.sleep(0.2)
-gt.stamp('sub_2')
-gt.end_subdivision()
-gt.stamp('fourth')
+gt.stop('fourth')
+time.sleep(0.1)
 print gt.report()

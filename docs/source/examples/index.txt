@@ -1,0 +1,9 @@
+>> Total Time (s):      4.006
+>> 
+>> Intervals
+>> ---------
+>> some_function ...... 3.005
+>>   (some_function)
+>>   some_method ........ 1.001
+>>   another_function ... 2.002
+>> another_method ..... 1.001

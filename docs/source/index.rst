@@ -1,15 +1,12 @@
 
-gtimer: A global Python timer
-=============================
+gtimer :   A Global Python Timer
+================================
 
-The purpose of the gtimer package is to record timing information during Python program execution in the following manner:
+The gtimer package is a Python timing tool intended for use cases ranging from quick, one-time measurements to permanent integration for recording project performance.  The main features include:
 
-- Flexible level of detail (e.g. ranging from line-by-line to function-wide)
-- Flexible scope--focus on points of interest without generating extraneous data
-- Automated organization of timing data (with explicit loop data)
-- Span multiple functions, files, and processes
-- Simple user interface for rapid deployment and adjustment
-- Low performance overhead (run with it on regularly)
+- Flexible levels of detail: lines, functions, programs, or any combination
+- Automatic organization of timing data
+- Easy deployment and adjustment of measurements
 - Convenient output to human-readable format or spreadsheet
 
 
@@ -52,41 +49,25 @@ That was easy, and the timing information was useful, so the program grows and s
     print "some_function time: ", t1 - t0
     print "another_method time: ", t2 - t1
 
-Suddenly, the count is 11 lines of timing code permeating only 7 lines of interest.  What's worse, the signature of ``some_function`` is polluted.  That escalated quickly!  And any insertions of new timer calls into further modified code requires manual upkeep of subtractions, printing labels, not to mention your mental model of how the times relate to each other, e.g. is ``another_function`` subsequent to or a subdivision of ``some_function``?  Still, it might be so helpful to measure specific pieces that you put up with this and just try not to touch it once it is in place, despite changing interests in certain lines or subfunctions.  With gtimer, you can quickly adjust your focus, and you will never write ``t2 - t1`` again, and *especially* not ``return t2 - t1``.  The same data may be gathered as in the previous example like so:
+That became uncomfortable quickly!  Function signatures are polluted, a mental model of timing relationships is now necessary, and adaptation to future code development will require time-consuming effort.  All of these side-effects are eliminated with gtimer:
 
-.. code-block:: python
+.. literalinclude:: examples/index.py
 
-    import gtimer as gt
+.. literalinclude:: examples/index.txt
 
-    @gt.wrap
-    def some_function():
-        some_statement
-        some_method()
-        gt.stamp('some_method')
-        another_function()
-        gt.stamp('another_function')
-
-    another_statement
-    some_function()
-    gt.stamp('some_function')
-    another_method()
-    gt.stamp('another_method')
-    print gt.report()
-
-That's down to 7 lines for timing, including both the import and the decorator.  More importantly, the printed report (shown later in the examples) will clearly distinguish that ``some_method`` and ``another_function`` are subdivisions of ``some_function``, and the addition or deletion of detail as the program evolves is as simple as adding or removing a single command to mark the time.  Several timer packages are of course already available, but none has yet provided the organizational power and comprehensiveness of gtimer.  It works for you with ease across files and even processes.
-
-Alternatives
-------------
-
-Maybe the example above is still more work to set up than running cProfile (link) or line_profiler (link), but end-to-end, from setup to investigating and presenting the data points you really want, gtimer can be the most effective solution.  cProfile is a powerful way to start analyzing a deep code base, and handsome visualization tools exist.  Yet cProfile can give too much data, from looking at *every* subfunction in the whole call stack, or not enough data, without insight into functions or subprocesses.  And it can be hard to compare one run from the next.  With line_profiler, you can easily peer inside any particular function and immediately see hotspots, but again it may provide excessive data from lines with simple statements, and it requires a change in how the Python script is called.  Alternatively, gtimer can focus on the interesting portions of code, streamlining the collection and interpretation of results while allowing Python scripts to run with no change in call signature.  The obvious drawback is the need to fill in timing calls inside the codebase--it is intended to make this process require as little forethought as possible.  And the low overhead should make it acceptable to always run with the timing code in place.  All of the above profiling approaches are worth considering and using for different purposes (gtimer can be used concurrently with the others!).  The following pages will demonstrate distinctive features of gtimer which make it a good short-term and long-term solution for performance monitoring.
+Code clutter is dramatically reduced, timing relationships are portrayed naturally, and adaptation is made easy.  The timing data structure gets built dynamically as the code executes, so the user can program gtimer linearly and with minimal forethought.  And gtimer spans files--simply import it to act with the same timer anywhere in a program.  Beyond this first example, more advanced capabilities are demonstrated in this documentation.
 
 
 Contents:
 =========
 
+Sections 1-3 are for getting started.  The remainder cover advanced topics.
+
 .. toctree::
    :maxdepth: 1
+   :numbered:
 
+   pages/installation.rst
    pages/basic_examples.rst
    pages/loops.rst
    pages/stamp_settings.rst

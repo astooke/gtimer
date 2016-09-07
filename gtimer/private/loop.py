@@ -105,7 +105,7 @@ def loop_end(loop_end_stamp=None,
                 f.sm1.itr_min[f.lp.name] = elapsed
         f.tm1.last_t = t
         if quick_print:
-            print("({}) {}: {}".format(f.tm1.name, f.lp.name, elapsed))
+            print("({}) {}: {:.4f}".format(f.tm1.name, f.lp.name, elapsed))
     f.t.self_cut += timer() - t
 
 

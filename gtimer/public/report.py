@@ -23,6 +23,43 @@ def report(times=None,
            include_stats=True,
            delim_mode=False,
            format_options=None):
+    """
+    Produce a formatted report of the current timing data.
+
+    Args:
+        times (Times, optional): Times object to report on.  If not provided,
+            uses current root timer.
+        include_itrs (bool, optional): Display invidual iteration times.
+        include_stats (bool, optional): Display iteration statistics.
+        delim_mode (bool, optional): If True, format for spreadsheet.
+        format_options (dict, optional): Formatting options, see below.
+
+    Formatting options:
+      key: default value  (extraneous keys in dict OK)
+
+        Human-readable Mode:
+    'stamp_name_width': 20
+    'itr_tab_width': 2
+    'itr_num_width': 6
+    'itr_name_width': 12
+    'indent_symbol': '  ' (two spaces)
+    'parallel_symbol': '(par)'
+
+        Delimited Mode:
+    'delimiter': '\t'
+    'ident_symbol': '+'
+    'parallel_symbol': '(par)'
+
+    When reporting a collection of parallel subdivisions, only the one with
+    the greatest total time is reported on, and the rest are ignored (no
+    branching).  To compare parallel subdivisions use compare().
+
+    Returns:
+        str: Timing data report as formatted string.
+
+    Raises:
+        TypeError: If 'times' param is used and value is not a Times object.
+    """
     if times is None:
         if f.root.stopped:
             return report_loc.report(f.root.times,
@@ -51,6 +88,47 @@ def compare(times_list=None,
             include_stats=True,
             delim_mode=False,
             format_options=None):
+    """
+    Produce a formatted comparison of timing datas.
+
+    Args:
+        times_list (Times, optional): list or tuple of Times objects.  If not
+            provided, uses current root timer.
+        name (any, optional): Identifier, passed through str().
+        include_list (bool, optional): Display stamps hierarchy.
+        include_stats (bool, optional): Display stamp comparison statistics.
+        delim_mode (bool, optional): If True, format for spreadsheet.
+        format_options (None, optional): Formatting options, see below.
+
+    If no times_list is provided, produces comparison reports on all parallel
+    subdivisions present at the root level of the current timer.  To compare
+    parallel subdivisions at a lower level, get the times data, navigate
+    within it to the parallel list of interest, and provide that as input
+    here.  As with report(), any further parallel subdivisions encountered
+    have only their member with the greatest total time reported on (no
+    branching).
+
+    Formatting options:
+      key: default value  (extraneous keys in dict OK)
+
+        Human-readable Mode:
+    'stamp_name_width': 18
+    'list_column_width': 12
+    'list_tab_width': 2
+    'stat_column_width': 8
+    'stat_tab_width': 2
+    'indent_symbol: ' ' (one space)
+
+        Delimited Mode:
+    'delimiter': '\t'
+    'ident_symbol': '+'
+
+    Returns:
+        str: Times data comparison as formatted string.
+
+    Raises:
+        TypeError: If any element of provided collection is not a Times object.
+    """
     if times_list is None:
         rep = ''
         for _, par_dict in f.root.times.par_subdvsn.iteritems():
@@ -76,6 +154,18 @@ def compare(times_list=None,
 
 
 def write_structure(times=None):
+    """
+    Produce a formatted record of a times data structure.
+
+    Args:
+        times (Times, optional): If not provided, uses the current root timer.
+
+    Returns:
+        str: Timer tree hierarchy in a formatted string.
+
+    Raises:
+        TypeError: If provided argument is not a Times object.
+    """
     if times is None:
         return report_loc.write_structure(f.root.times)
     else:

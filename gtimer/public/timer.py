@@ -38,7 +38,7 @@ SET = {'SI': True,  # save iterations
 
 def start():
     """
-    Marks the start of timing, overwriting the automatic start data written on
+    Mark the start of timing, overwriting the automatic start data written on
     import, or the automatic start at the beginning of a subdivision.
 
     Returns:
@@ -66,16 +66,16 @@ def start():
 def stamp(name, unique=None, keep_subdivisions=None, quick_print=None,
           un=None, ks=None, qp=None):
     """
-    Marks the end of a timing interval.
+    Mark the end of a timing interval.
 
     Args:
-        name: The identifier for this interval, processed through str()
-        unique (None, optional): boolean, enforce uniqueness
-        keep_subdivisions (None, optional): boolean, keep awaiting subdivisions
-        quick_print (None, optional): boolean, print elapsed interval time
-        un (None, optional): short-form for unique
-        ks (None, optional): short-form for keep_subdivisions
-        qp (None, optional): short-form for quick_print
+        name (any): The identifier for this interval, processed through str()
+        unique (bool, optional): enforce uniqueness
+        keep_subdivisions (bool, optional): keep awaiting subdivisions
+        quick_print (bool, optional): print elapsed interval time
+        un (bool, optional): short-form for unique
+        ks (bool, optional): short-form for keep_subdivisions
+        qp (bool, optional): short-form for quick_print
 
         If both long- and short-form are present, they are OR'ed together.  If
         neither are present, the current global default is used.
@@ -106,7 +106,7 @@ def stamp(name, unique=None, keep_subdivisions=None, quick_print=None,
     keep_subdivisions = SET['KS'] if (keep_subdivisions is None and ks is None) else bool(keep_subdivisions or ks)
     quick_print = SET['QP'] if (quick_print is None and qp is None) else bool(quick_print or qp)
     if quick_print:
-        print("({}) {}: {}".format(f.t.name, name, elapsed))
+        print("({}) {}: {:.4f}".format(f.t.name, name, elapsed))
     if f.t.in_loop:
         _loop_stamp(name, elapsed, unique)
     else:
@@ -126,17 +126,17 @@ def stamp(name, unique=None, keep_subdivisions=None, quick_print=None,
 def stop(name=None, unique=None, keep_subdivisions=None, quick_print=None,
          un=None, ks=None, qp=None):
     """
-    Marks the end of timing.  Optionally performs a stamp, hence accepts the
+    Mark the end of timing.  Optionally performs a stamp, hence accepts the
     same arguments.
 
     Args:
-        name (None, optional): If used, passed to a call to stamp()
-        unique (None, optional): see stamp()
-        keep_subdivisions (None, optional): boolean, keep awaiting subdivisions
-        quick_print (None, optional): boolean, print total time
-        un (None, optional): see stamp()
-        ks (None, optional): "
-        qp (None, optional): "
+        name (any, optional): If used, passed to a call to stamp()
+        unique (bool, optional): see stamp()
+        keep_subdivisions (bool, optional): keep awaiting subdivisions
+        quick_print (bool, optional): boolean, print total time
+        un (bool, optional): see stamp()
+        ks (bool, optional): "
+        qp (bool, optional): "
 
     If keeping subdivisions and not calling a stamp, any awaiting subdivisions
     will be assigned to a special 'UNASSIGNED' position to indicate that they
@@ -170,7 +170,7 @@ def stop(name=None, unique=None, keep_subdivisions=None, quick_print=None,
     times_priv.dump_times()
     f.t.stopped = True
     if quick_print:
-        print("({}) Total: {}".format(f.t.name, f.r.total))
+        print("({}) Total: {:.4f}".format(f.t.name, f.r.total))
     return t
 
 
@@ -224,18 +224,18 @@ def resume():
 def b_stamp(name=None, unique=None, keep_subdivisions=False, quick_print=None,
             un=None, ks=False, qp=None):
     """
-    Blank stamp.  Marks the beginning of a new interval, but the elapsed time
+    Blank stamp.  Mark the beginning of a new interval, but the elapsed time
     of the previous interval is discarded.  Intentionally the same signature
     as stamp().
 
     Args:
-        name (None, optional): Inactive.
-        unique (None, optional): Inactive.
+        name (any, optional): Inactive.
+        unique (any, optional): Inactive.
         keep_subdivisions (bool, optional): Keep subdivisions awaiting
-        quick_print (None, optional): Inactive.
-        un (None, optional): Inactive.
+        quick_print (any, optional): Inactive.
+        un (any, optional): Inactive.
         ks (bool, optional): see stamp().
-        qp (None, optional): Inactive.
+        qp (any, optional): Inactive.
 
     The default for keep_subdivisions is False (does not refer to an
     adjustable global setting), meaning that any subdivisons awaiting would be
@@ -261,7 +261,7 @@ def b_stamp(name=None, unique=None, keep_subdivisions=False, quick_print=None,
 
 def reset():
     """
-    Resets the timer at the current level in the hierarchy (i.e. might or
+    Reset the timer at the current level in the hierarchy (i.e. might or
     might not be the root).
 
     Erases timing data but preserves relationship to the hierarchy.  If the
@@ -291,17 +291,17 @@ def reset():
 @opt_arg_wrap
 def wrap(func, subdivide=True, name=None, rgstr_stamps=None, save_itrs=None):
     """
-    Decorator function for automatically inducing a subdivision on entering a
-    subfunction or method.  Can be used (as @gtimer.wrap) with or without any
-    arguments.
+    Decorator function which can automatically induce a subdivision on
+    entering a subfunction or method.  Can be used (as @gtimer.wrap) with or
+    without any arguments.
 
     Args:
         func (callable): Function to be decorated.
         subdivide (bool, optional): To subdivide.
-        name (None, optional): Identifier for the subdivision, passed through
+        name (any, optional): Identifier for the subdivision, passed through
             str()
-        rgstr_stamps (None, optional): List or tuple of identifiers.
-        save_itrs (None, optional): bool, to save individual iterations.
+        rgstr_stamps (list,tuple, optional): Identifiers.
+        save_itrs (bool, optional): to save individual iterations.
 
     If subdivide is False, then the wrapper does nothing but return the
     provided function.
@@ -335,13 +335,13 @@ def wrap(func, subdivide=True, name=None, rgstr_stamps=None, save_itrs=None):
 
 def subdivide(name, rgstr_stamps=None, save_itrs=SET['SI']):
     """
-    Induces a new subdivision--a lower level in the timing hierarchy.
+    Induce a new subdivision--a lower level in the timing hierarchy.
     Subsequent calls to methods like stamp() operate on this new level.
 
     Args:
-        name: Identifer for the new timer, passed through str().
-        rgstr_stamps (None, optional): List or tuple of identifiers.
-        save_itrs (TYPE, optional): bool, Save individual iteration data.
+        name (any): Identifer for the new timer, passed through str().
+        rgstr_stamps (list,tuple, optional): Identifiers.
+        save_itrs (bool, optional): Save individual iteration data.
 
     If rgstr_stamps is used, the collection is passed through set() for
     uniqueness, and the each entry is passed through str().  Any identifiers
@@ -370,7 +370,7 @@ def subdivide(name, rgstr_stamps=None, save_itrs=SET['SI']):
 
 def end_subdivision():
     """
-    Ends a user-induced timing subdivision, returning the previous level in
+    End a user-induced timing subdivision, returning the previous level in
     the timing hierarchy as the target of timing commands such as stamp().
     Includes a call to stop(), although a previous call to stop() does no
     harm.
@@ -399,7 +399,7 @@ def rename_root(name):
     Rename the root timer (regardless of current timing level).
 
     Args:
-        name: Identifier, passed through str()
+        name (any): Identifier, passed through str()
 
     Returns:
         str: Implemented identifier.
@@ -417,7 +417,7 @@ def set_save_itrs_root(setting):
     subdivide()).
 
     Args:
-        setting: Save individual iterations data, passed through bool()
+        setting (bool): Save individual iterations data, passed through bool()
 
     Returns:
         bool: Implemented setting value.
@@ -445,7 +445,7 @@ def rgstr_stamps_root(rgstr_stamps):
 
 def reset_root():
     """
-    CAUTION: A HARD RESET.  Re-instantiates the entire underlying timer data
+    CAUTION: A HARD RESET.  Re-instantiate the entire underlying timer data
     structure and restarts (same as first import), discarding all previous
     state and data.  No hazard checks--always executes when called, any time,
     anywhere.

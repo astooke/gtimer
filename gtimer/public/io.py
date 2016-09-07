@@ -20,8 +20,12 @@ __all__ = ['get_times', 'attach_subdivision', 'attach_par_subdivision',
 
 
 def get_times():
-    """Returns an immediate deep copy of current Times; no risk of
-    interference with active objects.
+    """
+    Produce a deepcopy of the current timing data (no risk of interference
+    with active timing or other operaitons).
+
+    Returns:
+        Times: gtimer timing data structure object.
     """
     if f.root.stopped:
         return copy.deepcopy(f.root.times)
@@ -33,8 +37,27 @@ def get_times():
 
 
 def attach_par_subdivision(par_name, par_times):
-    """Manual assignment of a group of (stopped) times objects as a parallel
+    """
+    Manual assignment of a collection of (stopped) Times objects as a parallel
     subdivision of a running timer.
+
+    An example sequence of proper usage:
+    1. Stamp in master process.
+    2. Run timed sub-processes.
+    3. Get timing data from sub-processes into master.
+    4. Attach timing data (i.e. list of Times objects) in master using this method.
+    5. Stamp in master process.
+
+    To stamp in the master between steps 1 and 5, it is recommended to
+    subdivide() between steps 1 and 2, and end that subdivision before
+    attaching.
+
+    Args:
+        par_name (any): Identifier for the collection, passed through str()
+        par_times (list or tuple): Collection of Times data objects.
+
+    Raises:
+        TypeError: If par_times not a list or tuple of Times data objects.
     """
     t = timer()
     if not isinstance(par_times, (list, tuple)):
@@ -71,8 +94,20 @@ def attach_par_subdivision(par_name, par_times):
 
 
 def attach_subdivision(times):
-    """ Manual assignment of a (stopped) times object as a subdivision of
-    running timer.
+    """
+    Manual assignment of a (stopped) times object as a subdivision of running
+    timer.  Use cases are expected to be very limited (mainly provided as a
+    one-Times variant of attach_par_subdivision).
+
+    As with any subdivision, the interval in the receiving timer is assumed to
+    totally subsume the time accumulated within the attached object--the total
+    in the receiver is not adjusted!
+    
+    Args:
+        times (Times): Individual Times data object.
+    
+    Raises:
+        TypeError: If times not a Times data object.
     """
     t = timer()
     if not isinstance(times, Times):
@@ -90,6 +125,22 @@ def attach_subdivision(times):
 
 
 def save_pkl(filename=None, times=None):
+    """
+    Serialize and / or save a Times data object using pickle (cPickle).
+
+    Args:
+        filename (None, optional): Filename to dump to. If not provided,
+            returns serialized object.
+        times (None, optional): object to dump.  If non provided, uses
+            current root.
+
+    Returns:
+        pkl: Pickled Times data object, only if no filename provided.
+
+    Raises:
+        TypeError: If 'times' is not a Times object or a list of tuple of
+            them.
+    """
     if times is None:
         if not f.root.stopped:
             times = collapse.collapse_times()
@@ -110,12 +161,28 @@ def save_pkl(filename=None, times=None):
 
 
 def load_pkl(filenames):
+    """
+    Unpickle file contents.
+
+    Args:
+        filenames (TYPE): Can be one or a list or tuple of filenames to retrieve.
+
+    Returns:
+        (Times): a Times object, or from a collection of filenames, a list of
+            Times objects.
+
+    Raises:
+        TypeError: If any loaded object is not a Times object.
+    """
     if not isinstance(filenames, (list, tuple)):
         filenames = [filenames]
     times = []
     for name in filenames:
         name = str(name)
         with open(name, 'rb') as file:
+            loaded_obj = pickle.load(file)
+            if not isinstance(loaded_obj, Times):
+                raise TypeError("At least one loaded object is not a Times data object.")
             times.append(pickle.load(file))
     return times if len(times) > 1 else times[0]
 
@@ -125,7 +192,14 @@ def load_pkl(filenames):
 #
 
 def open_mmap(filenames, init_size=10000, write=True):
-    """EXPERIMENTAL: UNTESTED"""
+    """
+    EXPERIMENTAL: UNTESTED OR NOT FUNCTIONING.
+    
+    Args:
+        filenames (TYPE): Description
+        init_size (int, optional): Description
+        write (bool, optional): Description
+    """
     if not isinstance(filenames, (list, tuple)):
         filenames = [filenames]
     files = list()
@@ -150,7 +224,13 @@ def open_mmap(filenames, init_size=10000, write=True):
 
 
 def close_mmap(mmaps, files):
-    """EXPERIMENTAL: UNTESTED"""
+    """
+    EXPERIMENTAL: UNTESTED OR NOT FUNCTIONING.
+    
+    Args:
+        mmaps (TYPE): Description
+        files (TYPE): Description
+    """
     mmaps = list(mmaps)
     files = list(files)
     for mm in mmaps:
@@ -160,7 +240,14 @@ def close_mmap(mmaps, files):
 
 
 def save_mmap(mm, file, times=None):
-    """EXPERIMENTAL: UNTESTED"""
+    """
+    EXPERIMENTAL: UNTESTED OR NOT FUNCTIONING.
+    
+    Args:
+        mm (TYPE): Description
+        file (TYPE): Description
+        times (None, optional): Description
+    """
     if times is not None:
         assert isinstance(times, Times), "Input 'times' must be None or Times object."
     times_pkl = save_pkl(times)
@@ -177,7 +264,14 @@ def save_mmap(mm, file, times=None):
 
 
 def load_mmap(mmaps, files, write=False):
-    """EXPERIMENTAL: UNTESTED"""
+    """
+    EXPERIMENTAL: UNTESTED OR NOT FUNCTIONING.
+    
+    Args:
+        mmaps (TYPE): Description
+        files (TYPE): Description
+        write (bool, optional): Description
+    """
     mmaps = list(mmaps)
     files = list(files)
     times = list()
