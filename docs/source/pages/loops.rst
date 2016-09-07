@@ -2,7 +2,7 @@
 Loops
 =====
 
-Loop Example 1 - Non-Unique Stamps
+Non-Unique Stamps
 ----------------------------------
 
 .. literalinclude:: /examples/loop_1.py
@@ -13,7 +13,7 @@ Loop Example 1 - Non-Unique Stamps
 Setting the ``unique`` flag of a stamp to ``False`` allows it to accumulate time at every iteration.  Use of the ``unique`` flag also allows times from disjoint segments of code to be assigned to the same stamp name.  (In general, enforcing uniqueness helps prevent accidental mishandling of measurements--gtimer uses the names of stamps and timers as identifiers.)
 
 
-Loop Example 2 - Timed For
+Timed For
 --------------------------
 
 .. literalinclude:: /examples/loop_2.py
@@ -24,7 +24,7 @@ Loop Example 2 - Timed For
 The loop in this example is termed an "anonymous" loop, since the intervals within it are recorded flat in the hierarchy of the surrounding code.
 
 
-Loop Example 3 - Timed While
+Timed While
 ----------------------------
 
 .. literalinclude:: /examples/loop_3.py
@@ -35,8 +35,8 @@ Loop Example 3 - Timed While
 The ``timed_loop()`` command returns a timed loop object which can be iterated using either the built-in ``next(loop)`` or ``loop.next()``.  Place this as the first line inside the loop.  At the first line past the loop, call ``loop.exit()`` to finish loop recording.  The optional name provided to the loop is used in two places: as a stamp name in the surrounding timer and as the timer name for a subdivision that exists only within the loop.  (In this case, with only one stamp inside the loop, that data is redundant.)
 
 
-Loop Details
-------------
+Timed Loop Details
+------------------
 
 ``timed_loop()`` and ``timed_for()`` both return objects that can be used as context managers::
 

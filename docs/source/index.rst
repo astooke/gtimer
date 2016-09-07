@@ -49,13 +49,13 @@ That was easy, and the timing information was useful, so the program grows and s
     print "some_function time: ", t1 - t0
     print "another_method time: ", t2 - t1
 
-That became uncomfortable quickly!  Function signatures are polluted, a mental model of timing relationships is now necessary, and adaptation to future code development will require time-consuming effort.  All of these side-effects are eliminated with gtimer:
+That got cumbersome quickly!  Function signatures are polluted, a mental model of timing relationships is now necessary, and adaptation to future code development will require time-consuming effort.  All of these side-effects are eliminated with gtimer:
 
 .. literalinclude:: examples/index.py
 
 .. literalinclude:: examples/index.txt
 
-Code clutter is dramatically reduced, timing relationships are portrayed naturally, and adaptation is made easy.  The timing data structure gets built dynamically as the code executes, so the user can program gtimer linearly and with minimal forethought.  And gtimer spans files--simply import it to act with the same timer anywhere in a program.  Beyond this first example, more advanced capabilities are demonstrated in this documentation.
+Code clutter is dramatically reduced, timing relationships are portrayed naturally, and adaptation is made easy.  The timing data structure gets built dynamically as the code executes, so the user can program gtimer linearly and with minimal forethought.  And gtimer spans files--simply import it to act with the same timer anywhere in a program.  Standard profiling is a powerful measurement alternative, but in comparison, gtimer can streamline the interpretation of results, does not require a change in script call signature, and makes it easy to compare separate runs.  Beyond this first example, more advanced capabilities are demonstrated in this documentation.
 
 
 Contents:
@@ -72,9 +72,9 @@ Sections 1-3 are for getting started.  The remainder cover advanced topics.
    pages/loops.rst
    pages/stamp_settings.rst
    pages/parallel.rst
-   pages/reporting.rst
    pages/data_structure.rst
-   pages/conclusion.rst
+   pages/disabled.rst
+   pages/functions.rst
 
 
 

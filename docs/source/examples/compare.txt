@@ -1,0 +1,23 @@
+>>                            run_1         run_2
+>>                          -------       -------
+>> Total.............          4.00          4.00
+>> Stamps Sum........          4.00          4.00
+>>  
+>> another_method ...          1.00          1.00
+>> some_function ....          3.00          3.00
+>>  some_method ......          1.00          1.00
+>>  another_function .          2.00          2.00
+>>  
+>>  
+>>                          Max       Min      Mean     StDev       Num
+>>                       ------    ------    ------    ------    ------
+>> Total ............      4.00      4.00      4.00      0.00         2
+>>  
+>>  
+>> another_method ...      1.00      1.00      1.00      0.00         2
+>> some_function ....      3.00      3.00      3.00      0.00         2
+>>  some_method ......      1.00      1.00      1.00      0.00         2
+>>  another_function .      2.00      2.00      2.00      0.00         2
+
+
+
