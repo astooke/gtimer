@@ -68,6 +68,15 @@ def stamp(name, unique=None, keep_subdivisions=None, quick_print=None,
     """
     Mark the end of a timing interval.
 
+    Notes:
+        If keeping subdivisions, each subdivision currently awaiting
+        assignment to a stamp (i.e. ended since the last stamp in this level)
+        will be assigned to this one.  Otherwise, all awaiting ones will be
+        discarded after aggregating their self times into the current timer.
+        
+        If both long- and short-form are present, they are OR'ed together.  If
+        neither are present, the current global default is used.
+
     Args:
         name (any): The identifier for this interval, processed through str()
         unique (bool, optional): enforce uniqueness
@@ -76,14 +85,6 @@ def stamp(name, unique=None, keep_subdivisions=None, quick_print=None,
         un (bool, optional): short-form for unique
         ks (bool, optional): short-form for keep_subdivisions
         qp (bool, optional): short-form for quick_print
-
-        If both long- and short-form are present, they are OR'ed together.  If
-        neither are present, the current global default is used.
-
-        If keeping subdivisions, each subdivision currently awaiting
-        assignment to a stamp (i.e. ended since the last stamp in this level)
-        will be assigned to this one.  Otherwise, all awaiting ones will be
-        discarded after aggregating their self times into the current timer.
 
     Returns:
         float: The current time.
@@ -129,6 +130,12 @@ def stop(name=None, unique=None, keep_subdivisions=None, quick_print=None,
     Mark the end of timing.  Optionally performs a stamp, hence accepts the
     same arguments.
 
+    Notes:
+        If keeping subdivisions and not calling a stamp, any awaiting subdivisions
+        will be assigned to a special 'UNASSIGNED' position to indicate that they
+        are not properly accounted for in the hierarchy (these can happen at
+        different places and may be combined inadvertently).
+
     Args:
         name (any, optional): If used, passed to a call to stamp()
         unique (bool, optional): see stamp()
@@ -138,10 +145,6 @@ def stop(name=None, unique=None, keep_subdivisions=None, quick_print=None,
         ks (bool, optional): "
         qp (bool, optional): "
 
-    If keeping subdivisions and not calling a stamp, any awaiting subdivisions
-    will be assigned to a special 'UNASSIGNED' position to indicate that they
-    are not properly accounted for in the hierarchy (these can happen at
-    different places and may be combined inadvertently).
 
     Returns:
         float: The current time.
@@ -228,6 +231,13 @@ def b_stamp(name=None, unique=None, keep_subdivisions=False, quick_print=None,
     of the previous interval is discarded.  Intentionally the same signature
     as stamp().
 
+    Notes:
+        The default for keep_subdivisions is False (does not refer to an
+        adjustable global setting), meaning that any subdivisons awaiting would be
+        discarded after having their self times aggregated into this timer.  If
+        this is set to True, subdivisions are put in the 'UNASSIGNED' position,
+        indicating they are not properly accounted for in the hierarchy.
+
     Args:
         name (any, optional): Inactive.
         unique (any, optional): Inactive.
@@ -236,12 +246,6 @@ def b_stamp(name=None, unique=None, keep_subdivisions=False, quick_print=None,
         un (any, optional): Inactive.
         ks (bool, optional): see stamp().
         qp (any, optional): Inactive.
-
-    The default for keep_subdivisions is False (does not refer to an
-    adjustable global setting), meaning that any subdivisons awaiting would be
-    discarded after having their self times aggregated into this timer.  If
-    this is set to True, subdivisions are put in the 'UNASSIGNED' position,
-    indicating they are not properly accounted for in the hierarchy.
 
     Returns:
         float: The current time.
@@ -264,11 +268,12 @@ def reset():
     Reset the timer at the current level in the hierarchy (i.e. might or
     might not be the root).
 
-    Erases timing data but preserves relationship to the hierarchy.  If the
-    current timer level was not previously stopped, any timing data from this
-    timer (including subdivisions) will be discarded and not added to the next
-    higher level in the data structure.  If the current timer was previously
-    stopped, then its data has already been pushed into the next higher level.
+    Notes:
+        Erases timing data but preserves relationship to the hierarchy.  If the
+        current timer level was not previously stopped, any timing data from this
+        timer (including subdivisions) will be discarded and not added to the next
+        higher level in the data structure.  If the current timer was previously
+        stopped, then its data has already been pushed into the next higher level.
 
     Returns:
         float: The current time.
@@ -295,20 +300,20 @@ def wrap(func, subdivide=True, name=None, rgstr_stamps=None, save_itrs=None):
     entering a subfunction or method.  Can be used (as @gtimer.wrap) with or
     without any arguments.
 
+    Notes:
+        If subdivide is False, then the wrapper does nothing but return the
+        provided function.
+
+        If a name is not provided, the function's __name__ is used (recommended).
+
+        For the other options, see subdivide().
+
     Args:
         func (callable): Function to be decorated.
         subdivide (bool, optional): To subdivide.
-        name (any, optional): Identifier for the subdivision, passed through
-            str()
+        name (any, optional): Identifier for the subdivision, passed through str()
         rgstr_stamps (list,tuple, optional): Identifiers.
         save_itrs (bool, optional): to save individual iterations.
-
-    If subdivide is False, then the wrapper does nothing but return the
-    provided function.
-
-    If a name is not provided, the function's __name__ is used (recommended).
-
-    For the other options, see subdivide().
 
     Returns:
         callable: A new function or method with timing hierarchy management
@@ -338,28 +343,28 @@ def subdivide(name, rgstr_stamps=None, save_itrs=SET['SI']):
     Induce a new subdivision--a lower level in the timing hierarchy.
     Subsequent calls to methods like stamp() operate on this new level.
 
+    Notes:
+        If rgstr_stamps is used, the collection is passed through set() for
+        uniqueness, and the each entry is passed through str().  Any identifiers
+        contained within are guaranteed to exist in the final dictionaries of
+        stamp data when this timer closes. If any registered stamp was not
+        actually encountered, zero values are populated.  (Can be useful if a
+        subdivision is called repeatedly with conditional stamps.)
+
+        The save_itrs input defaults to the current global default.  If save_itrs
+        is True, then whenever another subdivision by the same name is added to
+        the same position in the parent timer, and the two data structures are
+        merged, any stamps present only as individual stamps (but not as itrs)
+        will be made into itrs, with each subsequent data dump (when a subdivision
+        is stopped) treated as another iteration.  (Consider multiple calls to a
+        timer-wrapped subfunction within a loop.)  This setting does not
+        affect any other timers in the hierarchy.
+
     Args:
         name (any): Identifer for the new timer, passed through str().
         rgstr_stamps (list,tuple, optional): Identifiers.
         save_itrs (bool, optional): Save individual iteration data.
 
-    If rgstr_stamps is used, the collection is passed through set() for
-    uniqueness, and the each entry is passed through str().  Any identifiers
-    contained within are guaranteed to exist in the final dictionaries of
-    stamp data when this timer closes. If any registered stamp was not
-    actually encountered, zero values are populated.  (Can be useful if a
-    subdivision is called repeatedly with conditional stamps.)
-
-    The save_itrs input defaults to the current global default.  If save_itrs
-    is True, then whenever another subdivision by the same name is added to
-    the same position in the parent timer, and the two data structures are
-    merged, any stamps present only as individual stamps (but not as itrs)
-    will be made into itrs, with each subsequent data dump (when a subdivision
-    is stopped) treated as another iteration.  (Consider multiple calls to a
-    timer-wrapped subfunction within a loop.)  Actually, only the value of
-    this setting on the first such subdivision attached to the parent timer
-    dictates the behavior during all subsequent merges.  This setting does not
-    affect any other timers in the hierarchy.
 
     Returns:
         None
@@ -372,8 +377,7 @@ def end_subdivision():
     """
     End a user-induced timing subdivision, returning the previous level in
     the timing hierarchy as the target of timing commands such as stamp().
-    Includes a call to stop(), although a previous call to stop() does no
-    harm.
+    Includes a call to stop(); a previous call to stop() is OK.
 
     Returns:
         None
@@ -445,10 +449,12 @@ def rgstr_stamps_root(rgstr_stamps):
 
 def reset_root():
     """
-    CAUTION: A HARD RESET.  Re-instantiate the entire underlying timer data
-    structure and restarts (same as first import), discarding all previous
-    state and data.  No hazard checks--always executes when called, any time,
-    anywhere.
+    Re-instantiate the entire underlying timer data structure and restart
+    (same as first import), discarding all previous state and data.
+
+    Warning:
+        This is a hard reset without hazard checks--always executes when
+        called, any time, anywhere.
 
     Returns:
         None

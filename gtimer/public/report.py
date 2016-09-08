@@ -26,6 +26,11 @@ def report(times=None,
     """
     Produce a formatted report of the current timing data.
 
+    Notes:
+        When reporting a collection of parallel subdivisions, only the one with
+        the greatest total time is reported on, and the rest are ignored (no
+        branching).  To compare parallel subdivisions use compare().
+
     Args:
         times (Times, optional): Times object to report on.  If not provided,
             uses current root timer.
@@ -34,25 +39,18 @@ def report(times=None,
         delim_mode (bool, optional): If True, format for spreadsheet.
         format_options (dict, optional): Formatting options, see below.
 
-    Formatting options:
-      key: default value  (extraneous keys in dict OK)
-
-        Human-readable Mode:
-    'stamp_name_width': 20
-    'itr_tab_width': 2
-    'itr_num_width': 6
-    'itr_name_width': 12
-    'indent_symbol': '  ' (two spaces)
-    'parallel_symbol': '(par)'
-
-        Delimited Mode:
-    'delimiter': '\t'
-    'ident_symbol': '+'
-    'parallel_symbol': '(par)'
-
-    When reporting a collection of parallel subdivisions, only the one with
-    the greatest total time is reported on, and the rest are ignored (no
-    branching).  To compare parallel subdivisions use compare().
+    Formatting Keywords & Defaults:
+        Human-Readable Mode
+            - 'stamp_name_width': 20
+            - 'itr_tab_width': 2
+            - 'itr_num_width': 6
+            - 'itr_name_width': 12
+            - 'indent_symbol': '  ' (two spaces)
+            - 'parallel_symbol': '(par)'
+        Delimited Mode
+            - 'delimiter': '\t'
+            - 'ident_symbol': '+'
+            - 'parallel_symbol': '(par)'
 
     Returns:
         str: Timing data report as formatted string.
@@ -90,6 +88,15 @@ def compare(times_list=None,
             format_options=None):
     """
     Produce a formatted comparison of timing datas.
+    
+    Notes:
+        If no times_list is provided, produces comparison reports on all parallel
+        subdivisions present at the root level of the current timer.  To compare
+        parallel subdivisions at a lower level, get the times data, navigate
+        within it to the parallel list of interest, and provide that as input
+        here.  As with report(), any further parallel subdivisions encountered
+        have only their member with the greatest total time reported on (no
+        branching).
 
     Args:
         times_list (Times, optional): list or tuple of Times objects.  If not
@@ -100,28 +107,17 @@ def compare(times_list=None,
         delim_mode (bool, optional): If True, format for spreadsheet.
         format_options (None, optional): Formatting options, see below.
 
-    If no times_list is provided, produces comparison reports on all parallel
-    subdivisions present at the root level of the current timer.  To compare
-    parallel subdivisions at a lower level, get the times data, navigate
-    within it to the parallel list of interest, and provide that as input
-    here.  As with report(), any further parallel subdivisions encountered
-    have only their member with the greatest total time reported on (no
-    branching).
-
-    Formatting options:
-      key: default value  (extraneous keys in dict OK)
-
-        Human-readable Mode:
-    'stamp_name_width': 18
-    'list_column_width': 12
-    'list_tab_width': 2
-    'stat_column_width': 8
-    'stat_tab_width': 2
-    'indent_symbol: ' ' (one space)
-
-        Delimited Mode:
-    'delimiter': '\t'
-    'ident_symbol': '+'
+    Formatting Keywords & Defaults:
+        Human-readable Mode
+            - 'stamp_name_width': 18
+            - 'list_column_width': 12
+            - 'list_tab_width': 2
+            - 'stat_column_width': 8
+            - 'stat_tab_width': 2
+            - 'indent_symbol: ' ' (one space)
+        Delimited Mode
+            - 'delimiter': '\t'
+            - 'ident_symbol': '+'
 
     Returns:
         str: Times data comparison as formatted string.

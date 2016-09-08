@@ -1,19 +1,15 @@
 
 """
-Gtimer is a package providing Python code-timing capabilities intended for
-uses ranging from short, quick checks to long-term measurements able to
-cleanly persist within a code base.  The user writes interval-marking commands
-throughout code to measure desired segments, and gtimer records the results.
-Arbitrary organizational hierarchy of timing data is possible using
-subdivisions; gtimer manages the organization automatically, building it into
-the data structure on the fly.  As a result, the user can wield gtimer in a
-linear fashion, regardless of timing complexity.  Loop iteration data can be
-recorded.  Gtimer operates across functions and files (simply import it in
-each file), and even provides capabilities for parallel computing.
-Organizational structure and timing data are portrayed together in reports,
-either human-readable or delimited.
+The gtimer package is a Python timing tool intended for use cases ranging from
+quick, one-time measurements to permanent integration for recording project
+performance.  The main features include:
 
-See readthedocs..xx... for full documentation, including examples.
+- Flexible levels of detail: lines, functions, programs, or any combination
+- Automatic organization of timing data
+- Easy deployment and adjustment of measurements
+- Convenient output to human-readable format or spreadsheet
+
+See gtimer.readthedocs.io for full documentation, including examples.
 """
 
 import os

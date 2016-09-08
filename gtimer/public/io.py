@@ -41,16 +41,19 @@ def attach_par_subdivision(par_name, par_times):
     Manual assignment of a collection of (stopped) Times objects as a parallel
     subdivision of a running timer.
 
-    An example sequence of proper usage:
-    1. Stamp in master process.
-    2. Run timed sub-processes.
-    3. Get timing data from sub-processes into master.
-    4. Attach timing data (i.e. list of Times objects) in master using this method.
-    5. Stamp in master process.
+    Notes:
+        An example sequence of proper usage:
+        
+            1. Stamp in master process.
+            2. Run timed sub-processes.
+            3. Get timing data from sub-processes into master.
+            4. Attach timing data (i.e. list of Times objects) in master using this method.
+            5. Stamp in master process.
 
-    To stamp in the master between steps 1 and 5, it is recommended to
-    subdivide() between steps 1 and 2, and end that subdivision before
-    attaching.
+        To stamp in the master between steps 1 and 5, it is recommended to
+        subdivide() between steps 1 and 2, and end that subdivision before
+        attaching, or else the master stamp will not reflect the sub-process
+        time.
 
     Args:
         par_name (any): Identifier for the collection, passed through str()
@@ -99,13 +102,14 @@ def attach_subdivision(times):
     timer.  Use cases are expected to be very limited (mainly provided as a
     one-Times variant of attach_par_subdivision).
 
-    As with any subdivision, the interval in the receiving timer is assumed to
-    totally subsume the time accumulated within the attached object--the total
-    in the receiver is not adjusted!
-    
+    Notes:
+        As with any subdivision, the interval in the receiving timer is assumed to
+        totally subsume the time accumulated within the attached object--the total
+        in the receiver is not adjusted!
+
     Args:
         times (Times): Individual Times data object.
-    
+
     Raises:
         TypeError: If times not a Times data object.
     """
@@ -165,11 +169,10 @@ def load_pkl(filenames):
     Unpickle file contents.
 
     Args:
-        filenames (TYPE): Can be one or a list or tuple of filenames to retrieve.
+        filenames (str): Can be one or a list or tuple of filenames to retrieve.
 
     Returns:
-        (Times): a Times object, or from a collection of filenames, a list of
-            Times objects.
+        Times: A single object, or from a collection of filenames, a list of Times objects.
 
     Raises:
         TypeError: If any loaded object is not a Times object.
