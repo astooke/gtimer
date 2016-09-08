@@ -14,5 +14,5 @@ setup(name='gtimer',
                 'gtimer.private',
                 'gtimer.public'],
       classifiers=['Development Status :: 4 - Beta',
-                   'Programming Language :: Python 2'],
+                   'Programming Language :: Python :: 2'],
       zip_safe=False)

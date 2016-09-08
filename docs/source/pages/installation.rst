@@ -3,8 +3,7 @@ Installation
 
 Installation using PyPI and pip is standard::
 
-    # Not on PyPI yet.
-    # pip install gtimer
+    pip install gtimer
 
 
 To view the source code and / or install::
