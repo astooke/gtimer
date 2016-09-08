@@ -68,7 +68,7 @@ Sections 1-3 are for getting started.  The remainder cover advanced topics.
    :numbered:
 
    pages/installation.rst
-   pages/basic_examples.rst
+   pages/intro_examples.rst
    pages/loops.rst
    pages/stamp_settings.rst
    pages/parallel.rst

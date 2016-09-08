@@ -15,7 +15,8 @@ def report(times,
            include_itrs=True,
            include_stats=True,
            delim_mode=False,
-           format_options=None):
+           format_options=None,
+           timer_state=None):
     delim_mode = bool(delim_mode)
     if format_options is None:
         format_options = dict()
@@ -24,7 +25,7 @@ def report(times,
     _define_report_formats(delim_mode, format_options)
     FMT = FMTS_RPT['Report']
     rep = FMT['BEGIN'].format(times.name)
-    rep += _report_header(times)
+    rep += _report_header(times, timer_state)
     rep += FMT['INT']
     rep += _report_stamps(times)
     if include_itrs or include_stats:
@@ -179,9 +180,10 @@ def _define_report_formats(delim_mode, fmt_opts=None):
     FMTS_RPT = {'Report': RPRT, 'Header': HDR, 'Stamps': STMP, 'Itrs': ITRS, 'Stats': STATS}
 
 
-def _report_header(times):
+def _report_header(times, timer_state):
     FMT = FMTS_RPT['Header']
-    rep = FMT['HDR_STR'].format('Timer Name' + FMT['APND'], times.name)
+    state_str = "" if timer_state is None else " ({})".format(timer_state)
+    rep = FMT['HDR_STR'].format('Timer Name' + FMT['APND'], times.name + state_str)
     rep += FMT['HDR_FLT'].format('Total Time (s)' + FMT['APND'], times.total)
     rep += FMT['HDR_FLT'].format('Stamps Sum' + FMT['APND'], times.stamps_sum)
     rep += FMT['HDR_FLT'].format('Self Time (Agg.)' + FMT['APND'], times.self_agg)

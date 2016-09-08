@@ -1,4 +1,3 @@
-
 import gtimer as gt
 import time
 
@@ -7,8 +6,6 @@ import time
 def func_1():
     time.sleep(0.1)
     gt.stamp('f_first')
-    time.sleep(0.2)
-    gt.stamp('f_second')
 
 def func_2():
     time.sleep(0.1)
@@ -23,8 +20,9 @@ time.sleep(0.1)
 gt.stamp('third', quick_print=True)
 gt.subdivide('sub')
 time.sleep(0.1)
+func_1()
 gt.stamp('sub_1')
-time.sleep(0.2)
+time.sleep(0.1)
 gt.stamp('sub_2')
 gt.end_subdivision()
 gt.stamp('fourth')

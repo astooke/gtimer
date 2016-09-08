@@ -48,7 +48,7 @@ def report(times=None,
             - 'indent_symbol': '  ' (two spaces)
             - 'parallel_symbol': '(par)'
         Delimited Mode
-            - 'delimiter': '\t'
+            - 'delimiter': '\t' (tab)
             - 'ident_symbol': '+'
             - 'parallel_symbol': '(par)'
 
@@ -71,13 +71,18 @@ def report(times=None,
                                     include_itrs,
                                     include_stats,
                                     delim_mode,
-                                    format_options)
+                                    format_options,
+                                    timer_state='running')
             f.root.self_cut += timer() - t
             return rep
     else:
         if not isinstance(times, Times):
             raise TypeError("Expected Times instance for param 'times' (default is root).")
-        return report_loc.report(times, include_itrs, delim_mode)
+        return report_loc.report(times,
+                                 include_itrs,
+                                 include_stats,
+                                 delim_mode,
+                                 format_options)
 
 
 def compare(times_list=None,
@@ -88,7 +93,7 @@ def compare(times_list=None,
             format_options=None):
     """
     Produce a formatted comparison of timing datas.
-    
+
     Notes:
         If no times_list is provided, produces comparison reports on all parallel
         subdivisions present at the root level of the current timer.  To compare
@@ -116,7 +121,7 @@ def compare(times_list=None,
             - 'stat_tab_width': 2
             - 'indent_symbol: ' ' (one space)
         Delimited Mode
-            - 'delimiter': '\t'
+            - 'delimiter': '\t' (tab)
             - 'ident_symbol': '+'
 
     Returns:

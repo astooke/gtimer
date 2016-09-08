@@ -73,7 +73,7 @@ def stamp(name, unique=None, keep_subdivisions=None, quick_print=None,
         assignment to a stamp (i.e. ended since the last stamp in this level)
         will be assigned to this one.  Otherwise, all awaiting ones will be
         discarded after aggregating their self times into the current timer.
-        
+
         If both long- and short-form are present, they are OR'ed together.  If
         neither are present, the current global default is used.
 
@@ -142,8 +142,8 @@ def stop(name=None, unique=None, keep_subdivisions=None, quick_print=None,
         keep_subdivisions (bool, optional): keep awaiting subdivisions
         quick_print (bool, optional): boolean, print total time
         un (bool, optional): see stamp()
-        ks (bool, optional): "
-        qp (bool, optional): "
+        ks (bool, optional): see stamp()
+        qp (bool, optional): see stamp()
 
 
     Returns:
