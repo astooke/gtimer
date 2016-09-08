@@ -25,9 +25,7 @@ if not DISABLED:
     from gtimer.public.timedloop import *
     from gtimer.public.io import *
     from gtimer.public.report import *
-    del public, private, local
+    del public, private, local, util
 else:
     from gtimer.disabled.public import *
-    del disabled
-
-# del util
+    del disabled, util
