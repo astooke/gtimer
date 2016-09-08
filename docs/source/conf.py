@@ -32,17 +32,16 @@ extensions = ['sphinx.ext.autodoc', 'sphinxcontrib.napoleon']
 
 # Napoleon settings
 napoleon_use_rtype = False
-napoleon_include_init_with_doc = True
 
 
-# Remove module docstring.
-def remove_module_docstring(app, what, name, obj, options, lines):
-    if what == "module" and name == "gtimer":
-        del lines[:]
+# Remove module docstring. (might be breaking read-the-docs build)
+# def remove_module_docstring(app, what, name, obj, options, lines):
+#     if what == "module" and name == "gtimer":
+#         del lines[:]
 
 
-def setup(app):
-    app.connect("autodoc-process-docstring", remove_module_docstring)
+# def setup(app):
+#     app.connect("autodoc-process-docstring", remove_module_docstring)
 
 
 # Add any paths that contain templates here, relative to this directory.
