@@ -9,7 +9,7 @@ performance.  The main features include:
 - Easy deployment and adjustment of measurements
 - Convenient output to human-readable format or spreadsheet
 
-See gtimer.readthedocs.io for full documentation, including examples.
+See http://gtimer.readthedocs.io for full documentation, including examples.
 """
 
 import os
