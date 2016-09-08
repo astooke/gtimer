@@ -28,20 +28,20 @@ import os
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinxcontrib.napoleon']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
 
 # Napoleon settings
 napoleon_use_rtype = False
 
 
 # Remove module docstring. (might be breaking read-the-docs build)
-# def remove_module_docstring(app, what, name, obj, options, lines):
-#     if what == "module" and name == "gtimer":
-#         del lines[:]
+def remove_module_docstring(app, what, name, obj, options, lines):
+    if what == "module" and name == "gtimer":
+        del lines[:]
 
 
-# def setup(app):
-#     app.connect("autodoc-process-docstring", remove_module_docstring)
+def setup(app):
+    app.connect("autodoc-process-docstring", remove_module_docstring)
 
 
 # Add any paths that contain templates here, relative to this directory.
