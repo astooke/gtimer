@@ -1,7 +1,6 @@
 import gtimer as gt
 import time
 
-
 @gt.wrap
 def some_function():
     time.sleep(1)

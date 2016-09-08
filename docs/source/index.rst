@@ -13,7 +13,7 @@ The gtimer package is a Python timing tool intended for use cases ranging from q
 Why gtimer?
 -----------
 
-Have you ever written code like the following?
+Consider a simple in-place timing measurement:
 
 .. code-block:: python
 
@@ -24,7 +24,7 @@ Have you ever written code like the following?
     t_elapsed = t1 - t0
     print "Elapsed time: ", t_elapsed
 
-That was easy, and the timing information was useful, so the program grows and so does the interest in timing detail:
+It was easy, and the timing information was useful, so the program grows and so does the interest in timing detail:
 
 .. code-block:: python
 
@@ -49,13 +49,13 @@ That was easy, and the timing information was useful, so the program grows and s
     print "some_function time: ", t1 - t0
     print "another_method time: ", t2 - t1
 
-That got cumbersome quickly!  Function signatures are polluted, a mental model of timing relationships is now necessary, and adaptation to future code development will require time-consuming effort.  All of these side-effects are eliminated with gtimer:
+That grew cumbersome quickly!  Function signatures are polluted, a mental model of timing relationships is now necessary, and adaptation to future code development will require time-consuming effort.  All of these side-effects are eliminated with gtimer:
 
 .. literalinclude:: examples/index.py
 
 .. literalinclude:: examples/index.txt
 
-Code clutter is dramatically reduced, timing relationships are portrayed naturally, and adaptation is made easy.  The timing data structure gets built dynamically as the code executes, so the user can program gtimer linearly and with minimal forethought.  And gtimer spans files--simply import it to act with the same timer anywhere in a program.  Standard profiling is a powerful measurement alternative, but in comparison, gtimer can streamline the interpretation of results, does not require a change in script call signature, and makes it easy to compare separate runs.  Beyond this first example, more advanced capabilities are demonstrated in this documentation.
+Code clutter is dramatically reduced, timing relationships are portrayed naturally, and adaptation is made easy.  The timing data structure is built dynamically as the code executes, so the user can program gtimer linearly and with minimal forethought.  And gtimer spans files--simply import it to act with the same timer anywhere in a program.  Standard profiling is a powerful measurement alternative, but in comparison, gtimer can streamline the interpretation of results, does not require a change in script call signature, and makes it easier to compare separate runs.  Beyond this first example, more advanced capabilities are demonstrated in this documentation.
 
 
 Contents:
