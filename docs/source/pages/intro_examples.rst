@@ -11,6 +11,8 @@ Starting Simple
 
 The timer automatically starts on import, and each call to ``stamp()`` marks the end of an interval.  The "Self Time" is how long was spent inside gtimer functions, and has already been subtracted from the total.  Times are always presented in units of seconds.  The default timer name is "root", and it is indicated that this timer was still running (i.e. has not been stopped)--reports can be generated at any time without interfering with timing.
 
+(Internally, all timing is performed using ``default_timer`` imported from ``timeit``.)
+
 
 
 Subdividing
