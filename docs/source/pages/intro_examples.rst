@@ -39,9 +39,9 @@ Timer Control
 
 .. literalinclude:: /examples/result_2.txt
 
-Calling ``start()`` ignores any previous time, the time between ``pause()`` and ``resume()`` is ignored, and so is any time after ``stop()`` (used here with an optional stamp name).  The function ``b_stamp()`` begins a new interval but discards the time data of the one it ends.  There is finality in the ``stop()`` command--afterwords a timer level cannot be resumed, but it can be reset.
+Calling ``start()`` ignores any previous time, the time between ``pause()`` and ``resume()`` is ignored, and so is any time after ``stop()`` (used here with an optional stamp name).  The function ``blank_stamp()`` begins a new interval but discards the time data of the one it ends.  There is finality in the ``stop()`` command--afterwords a timer level cannot be resumed, but it can be reset.
 
-The "Stamps Sum" field indicates that the stamps data is not all-inclusive of the total time, due to the ``b_stamp()`` call.  This can also happen if stopping without stamping, or if no stamp is called immediately prior to enterting a timed loop.
+The "Stamps Sum" field indicates that the stamps data is not all-inclusive of the total time, due to the ``blank_stamp()`` call.  This can also happen if stopping without stamping, or if no stamp is called immediately prior to enterting a timed loop.
 
 
 Comparing Results
