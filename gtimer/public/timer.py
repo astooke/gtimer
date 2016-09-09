@@ -11,10 +11,11 @@ from gtimer.local.util import sanitize_rgstr_stamps
 from gtimer.util import opt_arg_wrap
 from gtimer.private.const import UNASGN
 from gtimer.local.exceptions import (StartError, StoppedError, PausedError,
-                                     LoopError, GTimerError, UniqueNameError)
+                                     LoopError, GTimerError, UniqueNameError,
+                                     BackdateError)
 
 
-__all__ = ['start', 'stamp', 'stop', 'pause', 'resume', 'b_stamp', 'reset',
+__all__ = ['start', 'stamp', 'stop', 'pause', 'resume', 'blank_stamp', 'backdate_stamp', 'reset',
            'wrap', 'subdivide', 'end_subdivision',
            'rename_root', 'set_save_itrs_root', 'rgstr_stamps_root', 'reset_root',
            'set_def_save_itrs', 'set_def_keep_subdivisions', 'set_def_quick_print', 'set_def_unique']
@@ -96,29 +97,16 @@ def stamp(name, unique=None, keep_subdivisions=None, quick_print=None,
             already observed at this level of the timing hierarchy.
     """
     t = timer()
-    elapsed = t - f.t.last_t
     if f.t.stopped:
         raise StoppedError("Cannot stamp stopped timer.")
     if f.t.paused:
         raise PausedError("Cannot stamp paused timer.")
-    name = str(name)
+    elapsed = t - f.t.last_t
     # Logic: default unless either arg used.  if both args used, 'or' them.
     unique = SET['UN'] if (unique is None and un is None) else bool(unique or un)  # bool(None) becomes False
     keep_subdivisions = SET['KS'] if (keep_subdivisions is None and ks is None) else bool(keep_subdivisions or ks)
     quick_print = SET['QP'] if (quick_print is None and qp is None) else bool(quick_print or qp)
-    if quick_print:
-        print("({}) {}: {:.4f}".format(f.t.name, name, elapsed))
-    if f.t.in_loop:
-        _loop_stamp(name, elapsed, unique)
-    else:
-        if name not in f.s.cum:
-            f.s.cum[name] = elapsed
-            f.s.order.append(name)
-        elif unique:
-            raise UniqueNameError("Duplicate stamp name: {}".format(name))
-        else:
-            f.s.cum[name] += elapsed
-    times_priv.assign_subdivisions(name, keep_subdivisions)
+    _stamp(name, elapsed, unique, keep_subdivisions, quick_print)
     f.t.last_t = timer()
     f.t.self_cut += f.t.last_t - t
     return t
@@ -159,7 +147,10 @@ def stop(name=None, unique=None, keep_subdivisions=None, quick_print=None,
     keep_subdivisions = SET['KS'] if (keep_subdivisions is None and ks is None) else bool(keep_subdivisions or ks)
     quick_print = SET['QP'] if (quick_print is None and qp is None) else bool(quick_print or qp)
     if name is not None:
-        stamp(name, un=unique, ks=keep_subdivisions, qp=quick_print)
+        if f.t.paused:
+            raise PausedError("Cannot stamp paused timer.")
+        elapsed = t - f.t.last_t
+        _stamp(name, elapsed, unique, keep_subdivisions, quick_print)
     else:
         times_priv.assign_subdivisions(UNASGN, keep_subdivisions)
     for s in f.t.rgstr_stamps:
@@ -224,10 +215,10 @@ def resume():
     return t
 
 
-def b_stamp(name=None, unique=None, keep_subdivisions=False, quick_print=None,
-            un=None, ks=False, qp=None):
+def blank_stamp(name=None, unique=None, keep_subdivisions=False, quick_print=None,
+                un=None, ks=False, qp=None):
     """
-    Blank stamp.  Mark the beginning of a new interval, but the elapsed time
+    Mark the beginning of a new interval, but the elapsed time
     of the previous interval is discarded.  Intentionally the same signature
     as stamp().
 
@@ -255,11 +246,56 @@ def b_stamp(name=None, unique=None, keep_subdivisions=False, quick_print=None,
     """
     t = timer()
     if f.t.stopped:
-        raise StoppedError("Cannot b_stamp stopped timer.")
+        raise StoppedError("Cannot blank_stamp stopped timer.")
     keep_subdivisions = (keep_subdivisions or ks)
     times_priv.assign_subdivisions(UNASGN, keep_subdivisions)
     f.t.last_t = timer()
     f.t.self_cut += f.t.last_t - t
+    return t
+
+
+def backdate_stamp(name, bd_time, unique=None, keep_subdivisions=None,
+                   quick_print=None, un=None, ks=None, qp=None):
+    """
+    Record a stamp as if it happened at an earlier time.  The backdate time
+    must be in the past but more recent than the last stamp.
+
+    Notes:
+        This might be useful for parallel applications, wherein a sub-
+        process could return a time of interest to the master process (i.e.
+        the sub-process does not need access to the master gtimer).
+
+        For parameters other than 'bd_time', see stamp().
+
+    Args:
+        bd_time (float): backdate time (e.g. returned from timeit.default_timer())
+
+    Returns:
+        float: The current time (not the backdated time).
+
+    Raises:
+        BackdateError: If backdate time is prior to last stamp or in the future.
+        PausedError: If timer is paused.
+        StoppedError: If timer is stopped.
+    """
+    t = timer()
+    if f.t.stopped:
+        raise StoppedError("Cannot backdate-stamp stopped timer.")
+    if f.t.paused:
+        raise PausedError("Cannot backdate-stamp paused timer.")
+    if bd_time > t:
+        raise BackdateError("Cannot backdate to future time.")
+    if bd_time < f.t.last_t:
+        raise BackdateError("Cannot backdate to time earlier than last stamp.")
+    elapsed = bd_time - f.t.last_t
+    # Logic: default unless either arg used.  if both args used, 'or' them.
+    unique = SET['UN'] if (unique is None and un is None) else bool(unique or un)  # bool(None) becomes False
+    keep_subdivisions = SET['KS'] if (keep_subdivisions is None and ks is None) else bool(keep_subdivisions or ks)
+    quick_print = SET['QP'] if (quick_print is None and qp is None) else bool(quick_print or qp)
+    _stamp(name, elapsed, unique, keep_subdivisions, quick_print)
+    tmp_self = timer() - t
+    f.t.last_t = bd_time + tmp_self
+    f.t.self_cut += tmp_self
     return t
 
 
@@ -623,6 +659,23 @@ def clear_par_subdvsn_awaiting():
 #
 # Private helper functions.
 #
+
+
+def _stamp(name, elapsed, unique, keep_subdivisions, quick_print):
+    name = str(name)
+    if f.t.in_loop:
+        _loop_stamp(name, elapsed, unique)
+    else:
+        if name not in f.s.cum:
+            f.s.cum[name] = elapsed
+            f.s.order.append(name)
+        elif unique:
+            raise UniqueNameError("Duplicate stamp name: {}".format(name))
+        else:
+            f.s.cum[name] += elapsed
+    if quick_print:
+        print("({}) {}: {:.4f}".format(f.t.name, name, elapsed))
+    times_priv.assign_subdivisions(name, keep_subdivisions)
 
 
 def _loop_stamp(name, elapsed, unique=True):

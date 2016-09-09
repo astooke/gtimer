@@ -26,3 +26,7 @@ class LoopError(GTimerError):
 
 class StartError(GTimerError):
     pass
+
+
+class BackdateError(GTimerError):
+    pass

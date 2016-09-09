@@ -75,6 +75,7 @@ Sections 1-3 are for getting started.  The remainder cover advanced topics.
    pages/data_structure.rst
    pages/disabled.rst
    pages/functions.rst
+   pages/changelog.rst
 
 
 
