@@ -6,7 +6,7 @@ When using gtimer in the context of parallel computing, with multiple separate p
 Communicating Raw Times
 -----------------------
 
-One parallel tool is the option to backdate in the ``stamp()`` function.  This receives a time and applies a stamp in the current timer as if it happened at that time (the backdate time must be in the past but more recent than the last stamp).  A sub-process can return a time (e.g. returned from any gtimer timing action) or a collection of times to the master process, so that the master need not synchronously monitor sub-process status.  The effect is that timing data from a sub-process appears as if native in the master.
+One parallel tool is the option to backdate in the ``stamp()`` function.  This receives a time and applies a stamp in the current timer as if it happened at that time (the backdate time must be in the past but more recent than the latest stamp).  A sub-process can return a time or a collection of times to the master process, so that the master need not synchronously monitor sub-process status.  The effect is that timing data from a sub-process appears as if native in the master.
 
 Communicating ``Times`` Objects
 -------------------------------

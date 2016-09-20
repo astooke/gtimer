@@ -100,11 +100,10 @@ def stamp(name, backdate=None,
         If both long- and short-form are present, they are OR'ed together.  If
         neither are present, the current global default is used.
 
-        Backdating: record a stamp as if it happened at an earlier time.  The
-        backdate time must be in the past but more recent than the last stamp.
-        (This can be useful for parallel applications, wherein a sub-
-        process can return a time of interest to the master process (i.e.
-        the sub-process does not need access to the master gtimer).)
+        Backdating: record a stamp as if it happened at an earlier time.
+        Backdate time must be in the past but more recent than the latest stamp.
+        (This can be useful for parallel applications, wherein a sub- process
+        can return times of interest to the master process.)
 
     Warning:
         When backdating, awaiting subdivisions will be assigned as normal, with
@@ -168,6 +167,9 @@ def stop(name=None, backdate=None,
         will be assigned to a special 'UNASSIGNED' position to indicate that they
         are not properly accounted for in the hierarchy (these can happen at
         different places and may be combined inadvertently).
+
+        Backdating: For subdivisions only.  Backdate time must be in the past
+        but more recent than the latest stamp.
 
     Args:
         name (any, optional): If used, passed to a call to stamp()
