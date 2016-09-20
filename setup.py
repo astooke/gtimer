@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='gtimer',
-      version='1.0.0-beta.2',
+      version='1.0.0-beta.3',
       description='A global Python timer',
       long_description='Documentation at: http://gtimer.readthedocs.io',
       url='http://github.com/astooke/gtimer',

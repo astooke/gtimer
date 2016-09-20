@@ -15,7 +15,7 @@ from gtimer.local.exceptions import (StartError, StoppedError, PausedError,
                                      BackdateError)
 
 
-__all__ = ['start', 'stamp', 'stop', 'pause', 'resume', 'blank_stamp', 'backdate_stamp', 'reset',
+__all__ = ['start', 'stamp', 'stop', 'pause', 'resume', 'blank_stamp', 'reset', 'current_time',
            'wrap', 'subdivide', 'end_subdivision',
            'rename_root', 'set_save_itrs_root', 'rgstr_stamps_root', 'reset_root',
            'set_def_save_itrs', 'set_def_keep_subdivisions', 'set_def_quick_print', 'set_def_unique']
@@ -37,18 +37,27 @@ SET = {'SI': True,  # save iterations
 #
 
 
-def start():
+def start(backdate=None):
     """
     Mark the start of timing, overwriting the automatic start data written on
     import, or the automatic start at the beginning of a subdivision.
+
+    Notes:
+        Backdating: For subdivisions only.  Backdate time must be in the past
+        but more recent than the latest stamp in the parent timer.
+
+    Args:
+        backdate (float, optional): time to use for start instead of current.
 
     Returns:
         float: The current time.
 
     Raises:
+        BackdateError: If given backdate time is out of range or used in root timer.
         StartError: If the timer is not in a pristine state (if any stamps or
             subdivisions, must reset instead).
         StoppedError: If the timer is already stopped (must reset instead).
+        TypeError: If given backdate value is not type float.
     """
     if f.s.cum:
         raise StartError("Already have stamps, can't start again (must reset).")
@@ -56,15 +65,28 @@ def start():
         raise StartError("Already have subdivisions, can't start again (must reset).")
     if f.t.stopped:
         raise StoppedError("Timer already stopped (must open new or reset).")
+    t = timer()
+    if backdate is None:
+        t_start = t
+    else:
+        if f.t is f.root:
+            raise BackdateError("Cannot backdate start of root timer.")
+        if not isinstance(backdate, float):
+            raise TypeError("Backdate must be type float.")
+        if backdate > t:
+            raise BackdateError("Cannot backdate to future time.")
+        if backdate < f.tm1.last_t:
+            raise BackdateError("Cannot backdate start to time previous to latest stamp in parent timer.")
+        t_start = backdate
     f.t.paused = False
     f.t.tmp_total = 0.  # (In case previously paused.)
-    t = timer()
-    f.t.start_t = t
-    f.t.last_t = t
+    f.t.start_t = t_start
+    f.t.last_t = t_start
     return t
 
 
-def stamp(name, unique=None, keep_subdivisions=None, quick_print=None,
+def stamp(name, backdate=None,
+          unique=None, keep_subdivisions=None, quick_print=None,
           un=None, ks=None, qp=None):
     """
     Mark the end of a timing interval.
@@ -78,8 +100,19 @@ def stamp(name, unique=None, keep_subdivisions=None, quick_print=None,
         If both long- and short-form are present, they are OR'ed together.  If
         neither are present, the current global default is used.
 
+        Backdating: record a stamp as if it happened at an earlier time.  The
+        backdate time must be in the past but more recent than the last stamp.
+        (This can be useful for parallel applications, wherein a sub-
+        process can return a time of interest to the master process (i.e.
+        the sub-process does not need access to the master gtimer).)
+
+    Warning:
+        When backdating, awaiting subdivisions will be assigned as normal, with
+        no additional checks for validity.
+
     Args:
         name (any): The identifier for this interval, processed through str()
+        backdate (float, optional): time to use for stamp instead of current
         unique (bool, optional): enforce uniqueness
         keep_subdivisions (bool, optional): keep awaiting subdivisions
         quick_print (bool, optional): print elapsed interval time
@@ -91,28 +124,40 @@ def stamp(name, unique=None, keep_subdivisions=None, quick_print=None,
         float: The current time.
 
     Raises:
+        BackdateError: If the given backdate time is out of range.
         PausedError: If the timer is paused.
         StoppedError: If the timer is stopped.
-        UniqueNameError: If uniqueness is enforced and the name provided is
-            already observed at this level of the timing hierarchy.
+        TypeError: If the given backdate value is not type float.
     """
     t = timer()
     if f.t.stopped:
         raise StoppedError("Cannot stamp stopped timer.")
     if f.t.paused:
         raise PausedError("Cannot stamp paused timer.")
-    elapsed = t - f.t.last_t
+    if backdate is None:
+        t_stamp = t
+    else:
+        if not isinstance(backdate, float):
+            raise TypeError("Backdate must be type float.")
+        if backdate > t:
+            raise BackdateError("Cannot backdate to future time.")
+        if backdate < f.t.last_t:
+            raise BackdateError("Cannot backdate to time earlier than last stamp.")
+        t_stamp = backdate
+    elapsed = t_stamp - f.t.last_t
     # Logic: default unless either arg used.  if both args used, 'or' them.
     unique = SET['UN'] if (unique is None and un is None) else bool(unique or un)  # bool(None) becomes False
     keep_subdivisions = SET['KS'] if (keep_subdivisions is None and ks is None) else bool(keep_subdivisions or ks)
     quick_print = SET['QP'] if (quick_print is None and qp is None) else bool(quick_print or qp)
     _stamp(name, elapsed, unique, keep_subdivisions, quick_print)
-    f.t.last_t = timer()
-    f.t.self_cut += f.t.last_t - t
+    tmp_self = timer() - t
+    f.t.self_cut += tmp_self
+    f.t.last_t = t_stamp + tmp_self
     return t
 
 
-def stop(name=None, unique=None, keep_subdivisions=None, quick_print=None,
+def stop(name=None, backdate=None,
+         unique=None, keep_subdivisions=None, quick_print=None,
          un=None, ks=None, qp=None):
     """
     Mark the end of timing.  Optionally performs a stamp, hence accepts the
@@ -126,6 +171,7 @@ def stop(name=None, unique=None, keep_subdivisions=None, quick_print=None,
 
     Args:
         name (any, optional): If used, passed to a call to stamp()
+        backdate (float, optional): time to use for stop instead of current
         unique (bool, optional): see stamp()
         keep_subdivisions (bool, optional): keep awaiting subdivisions
         quick_print (bool, optional): boolean, print total time
@@ -138,18 +184,33 @@ def stop(name=None, unique=None, keep_subdivisions=None, quick_print=None,
         float: The current time.
 
     Raises:
+        BackdateError: If given backdate is out of range, or if used in root timer.
+        PausedError: If attempting stamp in paused timer.
         StoppedError: If timer already stopped.
+        TypeError: If given backdate value is not type float.
     """
     t = timer()
     if f.t.stopped:
         raise StoppedError("Timer already stopped.")
+    if backdate is None:
+        t_stop = t
+    else:
+        if f.t is f.root:
+            raise BackdateError("Cannot backdate stop of root timer.")
+        if not isinstance(backdate, float):
+            raise TypeError("Backdate must be type float.")
+        if backdate > t:
+            raise BackdateError("Cannot backdate to future time.")
+        if backdate < f.t.last_t:
+            raise BackdateError("Cannot backdate to time earlier than last stamp.")
+        t_stop = backdate
     unique = SET['UN'] if (unique is None and un is None) else bool(unique or un)  # bool(None) becomes False
     keep_subdivisions = SET['KS'] if (keep_subdivisions is None and ks is None) else bool(keep_subdivisions or ks)
     quick_print = SET['QP'] if (quick_print is None and qp is None) else bool(quick_print or qp)
     if name is not None:
         if f.t.paused:
             raise PausedError("Cannot stamp paused timer.")
-        elapsed = t - f.t.last_t
+        elapsed = t_stop - f.t.last_t
         _stamp(name, elapsed, unique, keep_subdivisions, quick_print)
     else:
         times_priv.assign_subdivisions(UNASGN, keep_subdivisions)
@@ -158,7 +219,7 @@ def stop(name=None, unique=None, keep_subdivisions=None, quick_print=None,
             f.s.cum[s] = 0.
             f.s.order.append(s)
     if not f.t.paused:
-        f.t.tmp_total += t - f.t.start_t
+        f.t.tmp_total += t_stop - f.t.start_t
     f.t.tmp_total -= f.t.self_cut
     f.t.self_cut += timer() - t  # AFTER subtraction from tmp_total, before dump
     times_priv.dump_times()
@@ -215,7 +276,8 @@ def resume():
     return t
 
 
-def blank_stamp(name=None, unique=None, keep_subdivisions=False, quick_print=None,
+def blank_stamp(name=None, backdate=None,
+                unique=None, keep_subdivisions=False, quick_print=None,
                 un=None, ks=False, qp=None):
     """
     Mark the beginning of a new interval, but the elapsed time
@@ -231,6 +293,7 @@ def blank_stamp(name=None, unique=None, keep_subdivisions=False, quick_print=Non
 
     Args:
         name (any, optional): Inactive.
+        backdate (any, optional): Inactive.
         unique (any, optional): Inactive.
         keep_subdivisions (bool, optional): Keep subdivisions awaiting
         quick_print (any, optional): Inactive.
@@ -251,51 +314,6 @@ def blank_stamp(name=None, unique=None, keep_subdivisions=False, quick_print=Non
     times_priv.assign_subdivisions(UNASGN, keep_subdivisions)
     f.t.last_t = timer()
     f.t.self_cut += f.t.last_t - t
-    return t
-
-
-def backdate_stamp(name, bd_time, unique=None, keep_subdivisions=None,
-                   quick_print=None, un=None, ks=None, qp=None):
-    """
-    Record a stamp as if it happened at an earlier time.  The backdate time
-    must be in the past but more recent than the last stamp.
-
-    Notes:
-        This might be useful for parallel applications, wherein a sub-
-        process could return a time of interest to the master process (i.e.
-        the sub-process does not need access to the master gtimer).
-
-        For parameters other than 'bd_time', see stamp().
-
-    Args:
-        bd_time (float): backdate time (e.g. returned from timeit.default_timer())
-
-    Returns:
-        float: The current time (not the backdated time).
-
-    Raises:
-        BackdateError: If backdate time is prior to last stamp or in the future.
-        PausedError: If timer is paused.
-        StoppedError: If timer is stopped.
-    """
-    t = timer()
-    if f.t.stopped:
-        raise StoppedError("Cannot backdate-stamp stopped timer.")
-    if f.t.paused:
-        raise PausedError("Cannot backdate-stamp paused timer.")
-    if bd_time > t:
-        raise BackdateError("Cannot backdate to future time.")
-    if bd_time < f.t.last_t:
-        raise BackdateError("Cannot backdate to time earlier than last stamp.")
-    elapsed = bd_time - f.t.last_t
-    # Logic: default unless either arg used.  if both args used, 'or' them.
-    unique = SET['UN'] if (unique is None and un is None) else bool(unique or un)  # bool(None) becomes False
-    keep_subdivisions = SET['KS'] if (keep_subdivisions is None and ks is None) else bool(keep_subdivisions or ks)
-    quick_print = SET['QP'] if (quick_print is None and qp is None) else bool(quick_print or qp)
-    _stamp(name, elapsed, unique, keep_subdivisions, quick_print)
-    tmp_self = timer() - t
-    f.t.last_t = bd_time + tmp_self
-    f.t.self_cut += tmp_self
     return t
 
 
@@ -322,6 +340,17 @@ def reset():
     f.t.reset()
     f.refresh_shortcuts()
     return f.t.start_t
+
+
+def current_time():
+    """
+    Returns the current time using timeit.default_timer() (same as used
+    throughout gtimer).
+
+    Returns:
+        float: the current time
+    """
+    return timer()
 
 
 #

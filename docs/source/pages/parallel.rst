@@ -6,12 +6,12 @@ When using gtimer in the context of parallel computing, with multiple separate p
 Communicating Raw Times
 -----------------------
 
-One parallel tool is the function ``backdate_stamp()``.  This receives a time and applies a stamp in the current timer as if it happened at that time (the backdate time must be in the past but more recent than the last stamp).  A sub-process can return a time (e.g. returned from any gtimer timing action) or a collection of times to the master process, so that the master need not synchronously monitor sub-process status.  The effect is that timing data from a sub-process appears as if native in the master.
+One parallel tool is the option to backdate in the ``stamp()`` function.  This receives a time and applies a stamp in the current timer as if it happened at that time (the backdate time must be in the past but more recent than the last stamp).  A sub-process can return a time (e.g. returned from any gtimer timing action) or a collection of times to the master process, so that the master need not synchronously monitor sub-process status.  The effect is that timing data from a sub-process appears as if native in the master.
 
 Communicating ``Times`` Objects
 -------------------------------
 
-It is also possible to send ``Times`` data objects from sub-processes to the master and incorporate them into the master timer as subdivisions.  This can be done using the ``get_times()`` function or ``save_pkl()`` for a serialized version.  Disk storage could be utilized with ``load_pkl()``.  
+It is also possible to send ``Times`` data objects from sub-processes to the master and incorporate them into the master timer as subdivisions.  This can be done using the ``get_times()`` function or ``save_pkl()`` for a serialized version.  Disk storage could be utilized with ``load_pkl()``.
 
 Once the master process holds a collection of ``Times`` objects from completed sub-processes, they can be attached to the hierarchy using ``attach_par_subdivision()``.  In case timing data from only one representative worker is sufficient, ``attach_subdivision()`` can be used on a single ``Times`` object.  In either case, the attached timing data will exist in a temporary state until the next ``stamp()`` call in the master timer, at which point the data will be permanently assigned to the master timer hierarchy, just as a regular subdivision ended during that interval is.  To summarize, the proper sequence is:
 
@@ -19,7 +19,7 @@ Once the master process holds a collection of ``Times`` objects from completed s
 2. run subprocesses
 3. get times from subprocesses
 4. attach times to master
-5. stamp in master.  
+5. stamp in master.
 
 To stamp in the master during a sub-process run (between steps 2-4), it is recommended to first subdivide within the master, and end that subdivision before attaching.  Otherwise, the master stamp containing the parallel subdivision will not reflect the duration of the parallel work.
 
