@@ -3,11 +3,12 @@
 Class which holds temporary timing data which does not need to persis after
 timing is complete.
 """
-
+from __future__ import absolute_import
 from timeit import default_timer as timer
 import copy
 
 from gtimer.local.times import Times
+from gtimer.util import itervalues
 
 
 class Timer(object):
@@ -37,9 +38,9 @@ class Timer(object):
         new.__dict__.update(self.__dict__)
         new.subdvsn_awaiting = copy.deepcopy(self.subdvsn_awaiting, memo)
         new.par_subdvsn_awaiting = copy.deepcopy(self.par_subdvsn_awaiting, memo)
-        for _, sub_times in new.subdvsn_awaiting.iteritems():
+        for sub_times in itervalues(new.subdvsn_awaiting):
             sub_times.parent = new.times
-        for _, sub_list in new.par_subdvsn_awaiting.iteritems():
+        for sub_list in itervalues(new.par_subdvsn_awaiting):
             for sub_times in sub_list:
                 sub_times.parent = new.times
         new.times = copy.deepcopy(self.times, memo)

@@ -3,8 +3,10 @@
 Internal reporting functions acting on locally provided variables (user is
 provided global versions which call to these, see .public.report).
 """
+from __future__ import absolute_import, division
 
 from gtimer.private.const import UNASGN
+from gtimer.util import iteritems, itervalues
 
 #
 # Functions to expose elsewhere in package.
@@ -223,7 +225,7 @@ def _report_sub_times(subdvsn, indent, par):
 def _report_par_sub_times(par_subdvsn, indent):
     FMT = FMTS_RPT['Stamps']
     rep = ''
-    for par_name, par_list in par_subdvsn.iteritems():
+    for par_name, par_list in iteritems(par_subdvsn):
         sub_with_max_tot = max(par_list, key=lambda x: x.total)
         rep += "\n{}{}".format(FMT['IDT_SYM'] * (indent + 1), par_name + FMT['PAR'])
         rep += _report_stamps(sub_with_max_tot, indent + 1, par=True)
@@ -243,7 +245,7 @@ def _report_itr_stats(times, delim_mode):
         for _ in range(len(headers)):
             rep += FMT['HDR'].format('------')
     stamps = times.stamps
-    for s, num in stamps.itr_num.iteritems():
+    for s, num in iteritems(stamps.itr_num):
         if num > 1:
             rep += FMT['STMP'].format(s)
             values = [stamps.cum[s],
@@ -262,7 +264,7 @@ def _report_itrs(times, delim_mode=False, include_itrs=True, include_stats=True)
     rep = ''
     stamps = times.stamps
     any_itrs = False
-    for _, num in stamps.itr_num.iteritems():
+    for num in itervalues(stamps.itr_num):
         if num > 1:
             any_itrs = True
             break
@@ -305,11 +307,11 @@ def _report_itrs(times, delim_mode=False, include_itrs=True, include_stats=True)
                 rep += next_line
             itr += 1
         rep += "\n"
-    for _, subdvsn in times.subdvsn.iteritems():
+    for subdvsn in itervalues(times.subdvsn):
         for sub_times in subdvsn:
             rep += _report_itrs(sub_times, delim_mode, include_itrs)
-    for _, par_subdvsn in times.par_subdvsn.iteritems():
-        for _, par_list in par_subdvsn.iteritems():
+    for par_subdvsn in itervalues(times.par_subdvsn):
+        for par_list in itervalues(par_subdvsn):
             sub_with_max_tot = max(par_list, key=lambda x: x.total)
             rep += _report_itrs(sub_with_max_tot, delim_mode, include_itrs)
     return rep
@@ -350,11 +352,11 @@ def _build_master(master, times_list):
 
 
 def _build_master_single(master, times, index, num_times):
-        for stamp, val in times.stamps.cum.iteritems():
+        for stamp, val in iteritems(times.stamps.cum):
             if stamp not in master.stamps:
                 master.stamps[stamp] = [''] * num_times
             master.stamps[stamp][index] = val
-        for stamp, sub_list in times.subdvsn.iteritems():
+        for stamp, sub_list in iteritems(times.subdvsn):
             if stamp not in master.subdvsn:
                 master.subdvsn[stamp] = list()
             for sub_times in sub_list:
@@ -367,10 +369,10 @@ def _build_master_single(master, times, index, num_times):
                     master_sub = CompareTimes(name=sub_times.name, parent=master)
                     master.subdvsn[stamp].append(master_sub)
                 _build_master_single(master_sub, sub_times, index, num_times)
-        for stamp, par_dict in times.par_subdvsn.iteritems():
+        for stamp, par_dict in iteritems(times.par_subdvsn):
             if stamp not in master.par_subdvsn:
                 master.par_subdvsn[stamp] = dict()
-            for par_name, par_list in par_dict.iteritems():
+            for par_name, par_list in iteritems(par_dict):
                 if par_name not in master.par_subdvsn[stamp]:
                     master_sub = CompareTimes(name=par_name, parent=master)
                     master.par_subdvsn[stamp][par_name] = master_sub
@@ -401,18 +403,18 @@ class StampStats(object):
 
 
 def _populate_compare_stats(master):
-    for stamp, values in master.stamps.iteritems():
+    for stamp, values in iteritems(master.stamps):
         master.stats[stamp] = _compute_stats(values)
-    for _, sub_list in master.subdvsn.iteritems():
+    for sub_list in itervalues(master.subdvsn):
         for master_sub in sub_list:
             _populate_compare_stats(master_sub)
-    for _, sub_dict in master.par_subdvsn.iteritems():
-        for _, master_sub in sub_dict.iteritems():
+    for sub_dict in itervalues(master.par_subdvsn):
+        for master_sub in itervalues(sub_dict):
             _populate_compare_stats(master_sub)
 
 
 def _compute_stats(values):
-    use_values = filter(lambda x: x != '' and x != 0, values)
+    use_values = list(filter(lambda x: x != '' and x != 0, values))
     s = StampStats()
     s.num = len(use_values)
     if s.num > 0:
@@ -546,7 +548,7 @@ def _compare_stamps(master, indent=0, stats_mode=False):
         FMT = FMTS_CMP['List']
         loop_dict = master.stamps
     rep = ''
-    for stamp, values in loop_dict.iteritems():
+    for stamp, values in iteritems(loop_dict):
         rep += FMT['NAME'].format(FMT['IDT_SYM'] * indent, stamp + FMT['APND'])
         if stats_mode:
             num = values.num
@@ -584,11 +586,11 @@ def _write_structure(times, indent=0):
     strct = "\n{}{}".format(' ' * indent, times.name)
     if times.pos_in_parent:
         strct += " ({})".format(times.pos_in_parent)
-    for _, sub_list in times.subdvsn.iteritems():
+    for sub_list in itervalues(times.subdvsn):
         for sub_times in sub_list:
             strct += _write_structure(sub_times, indent + 4)
-    for _, par_dict in times.par_subdvsn.iteritems():
-        for _, par_list in par_dict.iteritems():
+    for par_dict in itervalues(times.par_subdvsn):
+        for par_list in itervalues(par_dict):
             sub_with_max_tot = max(par_list, key=lambda x: x.total)
             strct += _write_structure(sub_with_max_tot, indent + 4)
     return strct

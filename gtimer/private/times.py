@@ -2,11 +2,12 @@
 """
 Internal functions for managing times data objects.
 """
-
+from __future__ import absolute_import
 from timeit import default_timer as timer
 
 from gtimer.private import focus as f
 from gtimer.local import merge
+from gtimer.util import iteritems, itervalues
 
 
 #
@@ -16,18 +17,18 @@ from gtimer.local import merge
 
 def dump_times():
     f.r.total = f.t.tmp_total - f.r.self_agg  # (have already subtracted self_cut)
-    f.r.stamps_sum = sum([v for _, v in f.s.cum.iteritems()])
+    f.r.stamps_sum = sum([v for v in itervalues(f.s.cum)])
     f.r.self_agg += f.t.self_cut  # (now add self_cut including self time of stop())
     if f.s.itrs:
-        for s, itr_list in f.s.itrs.iteritems():
+        for s, itr_list in iteritems(f.s.itrs):
             f.s.itr_max[s] = max(itr_list)
-            nonzero_itrs = filter(lambda x: x > 0., itr_list)
+            nonzero_itrs = list(filter(lambda x: x > 0., itr_list))
             f.s.itr_num[s] = len(nonzero_itrs)
             if f.s.itr_num[s] > 0:
                 f.s.itr_min[s] = min(nonzero_itrs)
             else:
                 f.s.itr_min[s] = 0.
-    for s, val in f.s.cum.iteritems():  # (for saving stamps_as_itr)
+    for s, val in iteritems(f.s.cum):  # (for saving stamps_as_itr)
         if s not in f.s.itr_num:
             f.s.itr_num[s] = 1
             f.s.itr_max[s] = val
@@ -47,10 +48,10 @@ def dump_times():
 
 def assign_subdivisions(position, keep_subdivisions=True):
     # Aggregate the self-time whether subdvisions kept or not.
-    for _, times in f.t.subdvsn_awaiting.iteritems():
+    for times in itervalues(f.t.subdvsn_awaiting):
         f.r.self_agg += times.self_agg
-    for _, sub_list in f.t.par_subdvsn_awaiting.iteritems():
-        sub_with_max_tot = max(sub_list, filter=lambda x: x.total)
+    for sub_list in itervalues(f.t.par_subdvsn_awaiting):
+        sub_with_max_tot = max(sub_list, key=lambda x: x.total)
         f.r.self_agg += sub_with_max_tot.self_agg
     if keep_subdivisions:
         if f.t.subdvsn_awaiting:
@@ -70,11 +71,11 @@ def _assign_subdvsn(position):
     new_pos = position not in f.r.subdvsn and f.t.subdvsn_awaiting
     if new_pos:
         f.r.subdvsn[position] = list()
-        for _, sub_times in f.t.subdvsn_awaiting.iteritems():
+        for sub_times in itervalues(f.t.subdvsn_awaiting):
             sub_times.pos_in_parent = position
             f.r.subdvsn[position] += [sub_times]
     else:
-        for _, sub_times in f.t.subdvsn_awaiting.iteritems():
+        for sub_times in itervalues(f.t.subdvsn_awaiting):
             is_prev_sub = False
             for old_sub in f.r.subdvsn[position]:
                 if old_sub.name == sub_times.name:
@@ -91,12 +92,12 @@ def _assign_par_subdvsn(position):
     new_pos = position not in f.r.par_subdvsn and f.t.par_subdvsn_awaiting
     if new_pos:
         f.r.par_subdvsn[position] = dict()
-        for par_name, sub_list in f.t.par_subdvsn_awaiting.iteritems():
+        for par_name, sub_list in iteritems(f.t.par_subdvsn_awaiting):
             for sub_times in sub_list:
                 sub_times.pos_in_parent = position
             f.r.par_subdvsn[position][par_name] = sub_list
     else:
-        for par_name, sub_list in f.t.par_subdvsn_awaiting.iteritems():
+        for par_name, sub_list in iteritems(f.t.par_subdvsn_awaiting):
             if par_name not in f.r.par_subdvsn[position]:
                 for sub_times in sub_list:
                     sub_times.pos_in_parent = position

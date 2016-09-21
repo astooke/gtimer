@@ -3,6 +3,10 @@
 Merging data from a new times instances into the receiving instance
 (e.g. when they correspond to the same code segments.).
 """
+from __future__ import absolute_import
+
+from gtimer.util import iteritems
+
 
 #
 # Function to expose elsewhere in the package.
@@ -42,7 +46,7 @@ def _merge_stamps(rcvr, new):
 def _merge_dict(rcvr, new, attr):
     rcvr_dict = getattr(rcvr, attr)
     new_dict = getattr(new, attr)
-    for k, v in new_dict.iteritems():
+    for k, v in iteritems(new_dict):
         if k in rcvr_dict:
             rcvr_dict[k] += v
         else:
@@ -52,7 +56,7 @@ def _merge_dict(rcvr, new, attr):
 def _merge_dict_itr(rcvr, new, attr, itr_func):
     rcvr_dict = getattr(rcvr, attr)
     new_dict = getattr(new, attr)
-    for k, v in new_dict.iteritems():
+    for k, v in iteritems(new_dict):
         if k in rcvr_dict:
             rcvr_dict[k] = itr_func(v, rcvr_dict[k])
         else:
@@ -60,7 +64,7 @@ def _merge_dict_itr(rcvr, new, attr, itr_func):
 
 
 def _stamps_as_itr(rcvr, new):
-    for k, v in new.cum.iteritems():
+    for k, v in iteritems(new.cum):
         if new.itr_num[k] == 1:  # (then it won't be in new.itrs)
             if k in rcvr.itrs:
                 rcvr.itrs[k].append(v)
@@ -69,7 +73,7 @@ def _stamps_as_itr(rcvr, new):
 
 
 def _merge_subdivisions(rcvr, new):
-    for sub_pos, new_sub_list in new.subdvsn.iteritems():
+    for sub_pos, new_sub_list in iteritems(new.subdvsn):
         if sub_pos in rcvr.subdvsn:
             add_list = []  # to avoid writing to loop iterate
             for new_sub in new_sub_list:
@@ -90,9 +94,9 @@ def _merge_subdivisions(rcvr, new):
 
 
 def _merge_par_subdivisions(rcvr, new):
-    for sub_pos, par_dict in new.par_subdvsn.iteritems():
+    for sub_pos, par_dict in iteritems(new.par_subdvsn):
         if sub_pos in rcvr.par_subdvsn:
-            for par_name, new_list in par_dict.iteritems():
+            for par_name, new_list in iteritems(par_dict):
                 if par_name in rcvr.par_subdvsn[sub_pos]:
                     rcvr_list = rcvr.par_subdvsn[sub_pos][par_name]
                     add_list = []  # to avoid writing to loop iterate
@@ -112,7 +116,7 @@ def _merge_par_subdivisions(rcvr, new):
                         new_sub.par_in_parent = True
                     rcvr.par_subdvsn[sub_pos][par_name] = new_list
         else:
-            for par_name, par_list in par_dict.iteritems():
+            for par_name, par_list in iteritems(par_dict):
                 for new_sub in par_list:
                     new_sub.parent = rcvr
                     new_sub.par_in_parent = True

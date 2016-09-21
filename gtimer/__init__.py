@@ -11,14 +11,13 @@ performance.  The main features include:
 
 See http://gtimer.readthedocs.io for full documentation, including examples.
 """
-
+from __future__ import absolute_import
 import os
 
 DISABLED = False
 if 'GTIMER_DISABLE' in os.environ:
     if os.environ['GTIMER_DISABLE'] != '0':
         DISABLED = True
-del os
 
 if not DISABLED:
     from gtimer.public.timer import *
@@ -29,3 +28,5 @@ if not DISABLED:
 else:
     from gtimer.disabled.public import *
     del disabled, util
+
+del os, absolute_import

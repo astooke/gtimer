@@ -2,7 +2,7 @@
 """
 Factory functions providing timed loop objects to user.
 """
-
+from __future__ import absolute_import
 
 from gtimer.private.timedloop import TimedLoop, TimedFor
 from gtimer.public.timer import SET

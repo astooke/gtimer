@@ -3,6 +3,7 @@
 Internal, global data holding timer hierarchy and state.  Provides shortcut
 references to the timer and loop currently in "focus".
 """
+from __future__ import absolute_import
 
 from gtimer.local.stack import Stack
 from gtimer.local.timer import Timer

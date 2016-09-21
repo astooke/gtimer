@@ -3,9 +3,10 @@
 Class which holds permanent timing data which needs to persist after timing is
 complete.
 """
-
-
+from __future__ import absolute_import
 import copy
+
+from gtimer.util import itervalues
 
 
 class Times(object):
@@ -31,11 +32,11 @@ class Times(object):
         new.subdvsn = copy.deepcopy(new.subdvsn, memo)
         new.par_subdvsn = copy.deepcopy(self.par_subdvsn, memo)
         # Avoid deepcopy of parent, and update that attribute.
-        for _, sub_list in new.subdvsn.iteritems():
+        for sub_list in itervalues(new.subdvsn):
             for sub in sub_list:
                 sub.parent = new
-        for _, par_dict in new.par_subdvsn.iteritems():
-            for _, par_list in par_dict.iteritems():
+        for par_dict in itervalues(new.par_subdvsn):
+            for par_list in itervalues(par_dict):
                 for sub in par_list:
                     sub.parent = new
         return new

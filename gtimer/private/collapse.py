@@ -4,7 +4,7 @@ When the timer is still active and the user requests times data or reports,
 this internal functionality retrieves the current data from the active timer
 data structure.
 """
-
+from __future__ import absolute_import
 import copy
 
 from gtimer.private import focus as f

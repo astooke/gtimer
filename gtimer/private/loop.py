@@ -2,12 +2,13 @@
 """
 Internal functionality for timed loops.
 """
-
+from __future__ import absolute_import, print_function
 from timeit import default_timer as timer
 
 from gtimer.private import focus as f
 from gtimer.private import times as times_priv
 from gtimer.public import timer as timer_pub
+from gtimer.util import iteritems
 from gtimer.private.const import UNASGN
 from gtimer.local.exceptions import StoppedError, PausedError, LoopError
 
@@ -77,7 +78,7 @@ def loop_end(loop_end_stamp=None,
         for s in f.lp.rgstr_stamps:
             if s not in f.lp.stamps:
                 timer_pub._init_loop_stamp(s)
-    for s, used in f.lp.itr_stamp_used.iteritems():
+    for s, used in iteritems(f.lp.itr_stamp_used):
         if used:
             val = f.lp.itr_stamps[s]
             f.s.cum[s] += val

@@ -2,7 +2,7 @@
 """
 Core timer functionality provided to user.
 """
-
+from __future__ import absolute_import, print_function
 from timeit import default_timer as timer
 
 from gtimer.private import focus as f

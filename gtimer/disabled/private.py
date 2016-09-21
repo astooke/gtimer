@@ -18,6 +18,8 @@ class UntimedLoop(object):
     def next(self):
         pass
 
+    __next__ = next
+
 
 class UntimedFor(object):
 

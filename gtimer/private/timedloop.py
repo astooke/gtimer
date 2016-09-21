@@ -2,6 +2,7 @@
 """
 Classes which comprise the timed loops.
 """
+from __future__ import absolute_import
 
 from gtimer.private import loop
 from gtimer.private.focus import get_current_timer
@@ -76,6 +77,8 @@ class TimedLoop(TimedLoopBase):
                           self._keep_end_subdivisions,
                           self._quick_print)
         loop.loop_start()
+
+    __next__ = next
 
 
 class TimedFor(TimedLoopBase):

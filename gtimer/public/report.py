@@ -2,13 +2,14 @@
 """
 Reporting functions provided to user.
 """
-
+from __future__ import absolute_import
 from timeit import default_timer as timer
 
 from gtimer.private import focus as f
 from gtimer.local import report as report_loc
 from gtimer.local.times import Times
 from gtimer.private import collapse
+from gtimer.util import iteritems, itervalues
 
 __all__ = ['report', 'compare', 'write_structure']
 
@@ -132,8 +133,8 @@ def compare(times_list=None,
     """
     if times_list is None:
         rep = ''
-        for _, par_dict in f.root.times.par_subdvsn.iteritems():
-            for par_name, par_list in par_dict.iteritems():
+        for par_dict in itervalues(f.root.times.par_subdvsn):
+            for par_name, par_list in iteritems(par_dict):
                 rep += report_loc.compare(par_list,
                                           par_name,
                                           include_list,

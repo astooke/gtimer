@@ -3,6 +3,7 @@
 All public functions but with no timing, so gtimer commands can be left in
 place in code but timing turned off.
 """
+from __future__ import absolute_import
 
 from gtimer.disabled.private import UntimedLoop as _UntimedLoop
 from gtimer.disabled.private import UntimedFor as _UntimedFor
@@ -13,7 +14,7 @@ from gtimer.util import opt_arg_wrap as _opt_arg_wrap
 #
 
 
-def start():
+def start(*args, **kwargs):
     pass  # Will return None instead of a time.
 
 
@@ -33,11 +34,15 @@ def resume():
     pass
 
 
-def b_stamp(*args, **kwargs):
+def blank_stamp(*args, **kwargs):
     pass
 
 
 def reset():
+    pass
+
+
+def current_time():
     pass
 
 

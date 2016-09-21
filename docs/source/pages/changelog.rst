@@ -2,6 +2,14 @@
 Change Log
 ==========
 
+v1.0.0.b.4
+----------
+Changes:
+
+-Python3 compatibility.
+-Commented out all mmap functions (likely weren't functional yet anyway.)
+
+
 v1.0.0.b.3
 ----------
 Changes:

@@ -13,3 +13,5 @@ To view the source code and / or install::
     pip install .
 
 No third-party dependencies are required.
+
+Gtimer is Python2- and Python3-compatible (tested in 2.7 and 3.5).
