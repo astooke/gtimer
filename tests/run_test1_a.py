@@ -18,7 +18,9 @@ loop.exit()
 time.sleep(0.1)
 gt.stamp('third')
 
-x = gt.save_pkl()
+x = gt.save_pkl('test.pkl')
+
+y = gt.load_pkl('test.pkl')
 
 
-print(gt.report())
+print(gt.report(y))

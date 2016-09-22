@@ -189,7 +189,7 @@ def load_pkl(filenames):
             loaded_obj = pickle.load(file)
             if not isinstance(loaded_obj, Times):
                 raise TypeError("At least one loaded object is not a Times data object.")
-            times.append(pickle.load(file))
+            times.append(loaded_obj)
     return times if len(times) > 1 else times[0]
 
 
