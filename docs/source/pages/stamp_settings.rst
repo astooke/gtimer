@@ -8,7 +8,7 @@ Setting Descriptions
 Unique
 ^^^^^^
 
-If ``True``, checks whether the stamp name has been used previously in the current level in timer hierarchy, and raises ``UniqueNameError`` if so.  When inside a timed loop, gtimer will raise the exception if ever the same stamp name is encountered twice in one iteration.  Disjoint segments of code within a timed loop can be assigned to the same stamp name using ``unique=False``, and the iteration data will still count according to loop iteration.
+If ``True``, checks whether the stamp name has been used previously in the current level in timer hierarchy, and raises ``UniqueNameError`` if so.  When inside a timed loop, G-Timer will raise the exception if ever the same stamp name is encountered twice in one iteration.  Disjoint segments of code within a timed loop can be assigned to the same stamp name using ``unique=False``, and the iteration data will still count according to loop iteration.
 
 Keyword args: ``unique`` or ``un``
 
@@ -20,7 +20,7 @@ Keep Subdivisions
 
 Decide whether to keep timing subdivisions which have occured since the previous stamp (each subdivision is permanently affixed to its parent timer at the first stamp call following closure of the subdivision).  Perhaps a deeply nested subfunction call is not of interest for a particular run; this option can be used to ignore unwanted data without having to dig.
 
-Keyword args: ``keep_subdivisions`` or ``ks`` 
+Keyword args: ``keep_subdivisions`` or ``ks``
 
 Default: ``True`` for ``stamp()``, ``False`` for ``b_stamp()`` (only option active for ``b_stamp()``)
 

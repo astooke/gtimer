@@ -10,7 +10,7 @@ Non-Unique Stamps
 
 .. literalinclude:: /examples/loop_result_1.txt
 
-Setting the ``unique`` flag of a stamp to ``False`` allows it to accumulate time at every iteration.  Use of the ``unique`` flag also allows times from disjoint segments of code to be assigned to the same stamp name.  (In general, enforcing uniqueness helps prevent accidental mishandling of measurements--gtimer uses the names of stamps and timers as identifiers.)
+Setting the ``unique`` flag of a stamp to ``False`` allows it to accumulate time at every iteration.  Use of the ``unique`` flag also allows times from disjoint segments of code to be assigned to the same stamp name.  (In general, enforcing uniqueness helps prevent accidental mishandling of measurements--G-Timer uses the names of stamps and timers as identifiers.)
 
 
 Timed For
@@ -46,7 +46,7 @@ Timed Loop Details
             do_unto_x()
             gt.stamp('loop')
 
-When a ``timed_for`` loop used without context management needs to be broken, the loop's ``exit()`` must be called explicitly.  Redundant exits do no harm.  The ``timed_loop`` object can be used in both for and while loops.  
+When a ``timed_for`` loop used without context management needs to be broken, the loop's ``exit()`` must be called explicitly.  Redundant exits do no harm.  The ``timed_loop`` object can be used in both for and while loops.
 
 Each timed loop must use a new instance.  This means an inner loop object must be (re-)instantiated within the outer loop.  Due to name-checking, anonymous inner loops are not supported--all inner timed loops must be named (plain inner loops using non-unique stamps are OK).
 

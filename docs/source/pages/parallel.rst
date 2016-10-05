@@ -1,7 +1,7 @@
 Parallel Applications
 =====================
 
-When using gtimer in the context of parallel computing, with multiple separate python processes, each one will operate its own, independent gtimer.  Therefore it is necessary to communicate parallel timing data to the master timer.
+When using G-Timer in the context of parallel computing, with multiple separate python processes, each one will operate its own, independent G-Timer.  Therefore it may be necessary to communicate parallel timing data to the master timer.
 
 Communicating Raw Times
 -----------------------

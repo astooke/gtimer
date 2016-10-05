@@ -3,7 +3,7 @@ Change Log
 ==========
 
 v1.0.0.b.5
----------
+----------
 Bug fixes:
 
 - ``load_pkl`` no longer broken (used to attemp to load each file twice)
