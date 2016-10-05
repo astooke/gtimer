@@ -83,6 +83,7 @@ Indices and Tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
+
+.. * :ref:`modindex` (only one module presented in API)
 
